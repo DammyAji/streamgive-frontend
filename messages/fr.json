@@ -291,13 +291,11 @@
     "contractError8": "Cette ONG n'est pas vérifiée et ne peut pas recevoir de dons en flux pour le moment.",
     "contractError9": "Ce jeton n'est pas accepté par le coffre de dons.",
     "contractError10": "Le solde de votre portefeuille est trop faible pour couvrir ce dépôt."
-  }
-}
-{
+  },
   "Metadata": {
     "title": "StreamGive — Des dons transparents pour les ONG",
     "description": "Soutenez des ONG de confiance et contribuez à un impact positif grâce à des dons transparents.",
     "ogTitle": "StreamGive — Donnez en toute transparence, agissez concrètement",
     "ogDescription": "Découvrez des ONG, soutenez des causes importantes et faites des dons en toute transparence."
   }
-}=
+}

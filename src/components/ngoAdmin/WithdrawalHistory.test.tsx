@@ -1,4 +1,5 @@
 import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
 import * as ApiMod from '@/lib/api';
@@ -60,5 +61,50 @@ describe('WithdrawalHistory', () => {
     rerender(<WithdrawalHistory ngoId="ngo-2" />);
     await screen.findByText('No withdrawals yet.');
     expect(getWithdrawalsMock).toHaveBeenCalledWith('ngo-2', expect.anything());
+  });
+
+  it('hides Export CSV when there is no history to export', async () => {
+    vi.spyOn(ApiMod, 'getWithdrawals').mockResolvedValue([]);
+
+    render(<WithdrawalHistory ngoId="ngo-1" />);
+    await screen.findByText('No withdrawals yet.');
+
+    expect(screen.queryByRole('button', { name: 'Export CSV' })).not.toBeInTheDocument();
+  });
+
+  it('downloads every withdrawal as a CSV when Export CSV is clicked', async () => {
+    const user = userEvent.setup();
+    vi.spyOn(ApiMod, 'getWithdrawals').mockResolvedValue([
+      makeWithdrawal({ id: 'w1', streamId: '42', amount: '1000000000' }),
+    ]);
+    const originalCreate = URL.createObjectURL;
+    const originalRevoke = URL.revokeObjectURL;
+    const createObjectURL = vi.fn<(blob: Blob) => string>(() => 'blob:withdrawals');
+    URL.createObjectURL = createObjectURL;
+    URL.revokeObjectURL = vi.fn();
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+
+    try {
+      render(<WithdrawalHistory ngoId="ngo-1" />);
+      await user.click(await screen.findByRole('button', { name: 'Export CSV' }));
+
+      expect(click).toHaveBeenCalledTimes(1);
+      expect(createObjectURL).toHaveBeenCalledTimes(1);
+      const blob = createObjectURL.mock.calls[0][0];
+      expect(blob.type).toBe('text/csv;charset=utf-8;');
+      const text = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.readAsText(blob);
+      });
+      expect(text.split('\n')).toEqual([
+        'Date,Stream ID,Amount',
+        '2026-01-15T00:00:00.000Z,42,100',
+      ]);
+    } finally {
+      URL.createObjectURL = originalCreate;
+      URL.revokeObjectURL = originalRevoke;
+      click.mockRestore();
+    }
   });
 });

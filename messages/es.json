@@ -41,6 +41,7 @@
     "tagline": "StreamGive — de código abierto, desarrollado sobre Stellar.",
     "github": "GitHub",
     "docs": "Documentación",
+    "faq": "Preguntas frecuentes",
     "contact": "Contacto",
     "privacy": "Privacidad",
     "terms": "Términos",
@@ -391,5 +392,44 @@
     "title": "Estás sin conexión",
     "description": "Parece que has perdido tu conexión a internet. Algunas funciones pueden no estar disponibles hasta que te reconectes.",
     "retry": "Reintentar"
+  },
+  "Faq": {
+    "title": "Preguntas frecuentes",
+    "description": "Respuestas sobre flujos, comisiones, cancelaciones, reembolsos y billeteras.",
+    "items": [
+      {
+        "question": "¿Qué es un flujo?",
+        "answer": "Un flujo es una donación recurrente. Depositas los fondos una vez y quedan disponibles para la ONG segundo a segundo al ritmo que elegiste, en lugar de en un único pago."
+      },
+      {
+        "question": "¿A quién puedo donar?",
+        "answer": "A ONG verificadas. Una ONG queda verificada cuando el administrador de la plataforma aprueba su solicitud en el registro de ONG en la cadena. Solicitar el alta no basta para estar verificada."
+      },
+      {
+        "question": "¿Qué billeteras puedo usar?",
+        "answer": "Freighter o cualquier otra billetera compatible con Stellar Wallets Kit. No hay que crear ninguna cuenta. Tu billetera debe estar en la red que espera la aplicación; si no, se muestra un aviso de red incorrecta hasta que la cambies."
+      },
+      {
+        "question": "¿Cuánto cuesta?",
+        "answer": "Cada transacción que firmas, como crear, recargar o cancelar un flujo, paga una comisión de red de Stellar. La aplicación muestra una estimación antes de confirmar. Es una estimación, no una garantía de la comisión final."
+      },
+      {
+        "question": "¿Puedo cancelar un flujo?",
+        "answer": "Sí, en cualquier momento desde tu panel. La cancelación es total: lo acumulado hasta ese momento se liquida a la ONG y el saldo sin gastar se te devuelve."
+      },
+      {
+        "question": "¿Puedo pedir un reembolso?",
+        "answer": "Los fondos que ya se acumularon para la ONG no se pueden recuperar. La parte de tu depósito que aún no se ha transmitido sigue en tu flujo y vuelve a ti cuando lo cancelas."
+      },
+      {
+        "question": "¿Puedo añadir fondos o cambiar el ritmo?",
+        "answer": "Sí. Recargar añade fondos a un flujo activo. Modificar el ritmo te permite elegir una nueva duración, y el saldo restante se reparte en ella."
+      },
+      {
+        "question": "¿Cómo solicito el alta como ONG?",
+        "answer": "Conecta tu billetera y envía el formulario de la página de solicitud. Primero te registras en la cadena con tu propia billetera. Cuando el administrador de la plataforma aprueba tu solicitud, tu ONG aparece en el explorador."
+      }
+    ]
+  }
   }
 }

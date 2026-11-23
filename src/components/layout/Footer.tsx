@@ -46,6 +46,9 @@ export function Footer() {
           {t('contact')}
           {' '}<NewTabCue />
         </a>
+        <Link href="/faq" className="hover:text-black dark:hover:text-white">
+          {t('faq')}
+        </Link>
         <Link href="/privacy" className="hover:text-black dark:hover:text-white">
           {t('privacy')}
         </Link>

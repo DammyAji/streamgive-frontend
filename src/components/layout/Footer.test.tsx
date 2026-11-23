@@ -32,6 +32,14 @@ describe('Footer', () => {
     expect(contact).toHaveAccessibleName('Contact (opens in a new tab)');
   });
 
+  it('links to the internal FAQ page without a new-tab cue', () => {
+    renderWithIntl(<Footer />);
+
+    const faq = screen.getByRole('link', { name: 'FAQ' });
+    expect(faq).toHaveAttribute('href', '/faq');
+    expect(faq).not.toHaveAttribute('target');
+  });
+
   it('links to internal privacy and terms pages without a new-tab cue', () => {
     renderWithIntl(<Footer />);
 
@@ -56,6 +64,10 @@ describe('Footer', () => {
     expect(
       screen.getByRole('link', { name: 'Contacto (se abre en una pestaña nueva)' }),
     ).toHaveAttribute('href', 'https://github.com/streamgive/streamgive-frontend/issues/new');
+    expect(screen.getByRole('link', { name: 'Preguntas frecuentes' })).toHaveAttribute(
+      'href',
+      '/faq',
+    );
     expect(screen.getByRole('link', { name: 'Privacidad' })).toHaveAttribute('href', '/privacy');
     expect(screen.getByRole('link', { name: 'Términos' })).toHaveAttribute('href', '/terms');
   });

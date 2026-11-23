@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import type { Stream } from './api';
-import { buildDonationHistoryCsv } from './csv';
+import type { Stream, Withdrawal } from './api';
+import { buildDonationHistoryCsv, buildWithdrawalHistoryCsv } from './csv';
 import { getNativeAssetAddress } from './stellar';
 
 function makeStream(overrides: Partial<Stream> = {}): Stream {
@@ -65,5 +65,38 @@ describe('buildDonationHistoryCsv', () => {
     expect(buildDonationHistoryCsv([])).toBe(
       '\uFEFFStream ID,NGO,Token,Status,Committed,Withdrawn,Rate per second,Remaining,Created',
     );
+  });
+});
+
+describe('buildWithdrawalHistoryCsv', () => {
+  const withdrawal: Withdrawal = {
+    id: 'w1',
+    streamId: '42',
+    amount: '1000000000',
+    createdAt: '2026-01-15T00:00:00.000Z',
+  };
+
+  it('emits a BOM, the Date, Stream ID and Amount columns and one row per withdrawal', () => {
+    const csv = buildWithdrawalHistoryCsv([
+      withdrawal,
+      { ...withdrawal, id: 'w2', streamId: '7', amount: '25000000', createdAt: '2026-02-01T12:30:00.000Z' },
+    ]);
+
+    expect(csv.split('\n')).toEqual([
+      '\uFEFFDate,Stream ID,Amount',
+      '2026-01-15T00:00:00.000Z,42,100',
+      '2026-02-01T12:30:00.000Z,7,2.5',
+    ]);
+  });
+
+  it('returns just the BOM and header for an empty history', () => {
+    expect(buildWithdrawalHistoryCsv([])).toBe('\uFEFFDate,Stream ID,Amount');
+  });
+
+  it('guards fields that would run as a spreadsheet formula', () => {
+    const csv = buildWithdrawalHistoryCsv([{ ...withdrawal, streamId: '=HYPERLINK("http://x")' }]);
+    const [, row] = csv.split('\n');
+
+    expect(row).toBe('2026-01-15T00:00:00.000Z,"\'=HYPERLINK(""http://x"")",100');
   });
 });

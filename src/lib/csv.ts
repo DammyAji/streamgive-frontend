@@ -1,5 +1,5 @@
-import type { Stream } from './api';
-import { formatRemainingDuration, formatTokenAmount, tokenLabel } from './format';
+import type { Stream, Withdrawal } from './api';
+import { formatAmount, formatRemainingDuration, formatTokenAmount, tokenLabel } from './format';
 
 const UTF8_BOM = '\uFEFF';
 
@@ -43,4 +43,22 @@ export function buildDonationHistoryCsv(streams: Stream[]): string {
   });
 
   return UTF8_BOM + [CSV_HEADERS, ...rows].map((row) => row.join(',')).join('\n');
+}
+
+const WITHDRAWAL_CSV_HEADERS = ['Date', 'Stream ID', 'Amount'];
+
+/** Builds a CSV of an NGO's withdrawal history for the NGO admin page's
+ * "Export CSV" button — one row per withdrawal, header row only when the
+ * history is empty. Uses the same field escaping and UTF-8 BOM as the
+ * donation export. */
+export function buildWithdrawalHistoryCsv(withdrawals: Withdrawal[]): string {
+  const rows = withdrawals.map((withdrawal) =>
+    [
+      new Date(withdrawal.createdAt).toISOString(),
+      withdrawal.streamId,
+      formatAmount(withdrawal.amount),
+    ].map(escapeCsvField),
+  );
+
+  return UTF8_BOM + [WITHDRAWAL_CSV_HEADERS, ...rows].map((row) => row.join(',')).join('\n');
 }

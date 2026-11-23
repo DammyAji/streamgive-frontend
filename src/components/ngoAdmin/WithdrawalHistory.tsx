@@ -4,9 +4,24 @@ import { useLocale } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 import { getWithdrawals, type Withdrawal } from '@/lib/api';
+import { buildWithdrawalHistoryCsv } from '@/lib/csv';
 import { formatAmount, formatDateTime } from '@/lib/format';
 
 const PAGE_SIZE = 10;
+
+function downloadWithdrawalHistoryCsv(withdrawals: Withdrawal[]): void {
+  const blob = new Blob([buildWithdrawalHistoryCsv(withdrawals)], {
+    type: 'text/csv;charset=utf-8;',
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'streamgive-withdrawals.csv';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
 
 /**
  * Past withdrawal transactions for an NGO, so admins can reconcile their
@@ -69,7 +84,18 @@ function WithdrawalHistoryContent({ ngoId, onRetry }: { ngoId: string; onRetry: 
 
   return (
     <div className="mt-8">
-      <h2 className="font-semibold">Transaction history</h2>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="font-semibold">Transaction history</h2>
+        {!loading && !loadError && withdrawals !== null && withdrawals.length > 0 && (
+          <button
+            type="button"
+            onClick={() => downloadWithdrawalHistoryCsv(withdrawals)}
+            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
+          >
+            Export CSV
+          </button>
+        )}
+      </div>
 
       {loading && (
         <p role="status" className="mt-2 text-sm text-gray-500 dark:text-gray-400">

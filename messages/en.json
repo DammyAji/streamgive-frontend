@@ -41,6 +41,7 @@
     "tagline": "StreamGive — open source, built on Stellar.",
     "github": "GitHub",
     "docs": "Docs",
+    "faq": "FAQ",
     "contact": "Contact",
     "privacy": "Privacy",
     "terms": "Terms",
@@ -391,5 +392,44 @@
     "title": "You are offline",
     "description": "It looks like you've lost your internet connection. Some features may be unavailable until you reconnect.",
     "retry": "Try again"
+  },
+  "Faq": {
+    "title": "Frequently asked questions",
+    "description": "Answers about streams, fees, cancelling, refunds and wallets.",
+    "items": [
+      {
+        "question": "What is a stream?",
+        "answer": "A stream is a recurring donation. You deposit funds once and they become available to the NGO second by second at the rate you chose, instead of in one lump sum."
+      },
+      {
+        "question": "Who can I donate to?",
+        "answer": "Verified NGOs. An NGO is verified once the platform admin approves its application in the on-chain NGO registry. Applying alone does not make an NGO verified."
+      },
+      {
+        "question": "Which wallets can I use?",
+        "answer": "Freighter or any other wallet supported by Stellar Wallets Kit. There is no account to create. Your wallet has to be on the network the app expects, otherwise the app shows a wrong-network warning until you switch."
+      },
+      {
+        "question": "What does it cost?",
+        "answer": "Each transaction you sign, such as creating, topping up or cancelling a stream, pays a Stellar network fee. The app shows an estimate before you confirm. It is an estimate, not a guarantee of the final fee."
+      },
+      {
+        "question": "Can I cancel a stream?",
+        "answer": "Yes, at any time from your dashboard. Cancelling is all or nothing: what has accrued so far is settled to the NGO and the unspent balance is refunded to you."
+      },
+      {
+        "question": "Can I get a refund?",
+        "answer": "Funds that have already accrued to the NGO cannot be taken back. The part of your deposit that has not streamed yet stays in your stream and comes back to you when you cancel."
+      },
+      {
+        "question": "Can I add funds or change the rate?",
+        "answer": "Yes. Top up adds funds to an active stream. Modify rate lets you choose a new duration, and the remaining balance is spread over it."
+      },
+      {
+        "question": "How do I apply as an NGO?",
+        "answer": "Connect your wallet and submit the form on the Apply page. You register on-chain with your own wallet first. Once the platform admin approves your application, your NGO appears in the explorer."
+      }
+    ]
+  }
   }
 }
