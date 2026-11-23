@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 
-import { CopyLinkButton } from '@/components/common/CopyLinkButton';
+import { ShareButton } from '@/components/common/ShareButton';
 import { DonateQrCode } from '@/components/ngos/DonateQrCode';
 import { getNgo, getStreams, type NgoProfile, type Stream } from '@/lib/api';
 import { formatAmount, formatDate, tokenSymbol, truncateAddress } from '@/lib/format';
@@ -115,7 +115,7 @@ export default async function NgoProfilePage({ params }: Props) {
               {t('verified')}
             </span>
           )}
-          <CopyLinkButton />
+          <ShareButton title={ngo.name} ariaLabel={`Share ${ngo.name}`} />
         </div>
 
         <a
