@@ -102,7 +102,8 @@
     "hoursRemaining": "~{count, plural, one {# hour} other {# hours}} remaining",
     "daysRemaining": "~{count, plural, one {# day} other {# days}} remaining",
     "viewDetails": "View details",
-    "loadMore": "Load more"
+    "loadMore": "Load more",
+    "endedStreamsSection": "Ended streams ({count})"
   },
   "StreamControls": {
     "topUpSuccess": "Stream topped up — may take a few seconds to show below.",

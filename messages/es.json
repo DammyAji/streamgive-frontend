@@ -102,7 +102,8 @@
     "hoursRemaining": "Quedan ~{count, plural, one {# hora} other {# horas}}",
     "daysRemaining": "Quedan ~{count, plural, one {# día} other {# días}}",
     "viewDetails": "Ver detalles",
-    "loadMore": "Cargar más"
+    "loadMore": "Cargar más",
+    "endedStreamsSection": "Flujos finalizados ({count})"
   },
   "StreamControls": {
     "topUpSuccess": "Flujo recargado. Puede tardar unos segundos en aparecer abajo.",
