@@ -9,6 +9,7 @@ import { useToast } from '@/components/toast/ToastProvider';
 import { useWallet } from '@/components/wallet/WalletProvider';
 import { useDonationVaultClient } from '@/lib/donationVaultClient';
 import { DURATIONS } from '@/lib/durations';
+import { calculateMonthlyStream, SECONDS_PER_MONTH } from '@/lib/monthlyStream';
 import {
   formatAmount,
   formatAmountInput,
@@ -57,7 +58,10 @@ export function CreateStreamForm({
 
   const [tokenChoice, setTokenChoice] = useState<TokenChoice>('native');
   const [customToken, setCustomToken] = useState('');
+  const [amountMode, setAmountMode] = useState<'total' | 'monthly'>('total');
   const [amount, setAmount] = useState('');
+  const [monthlyAmount, setMonthlyAmount] = useState('');
+  const [monthsCount, setMonthsCount] = useState('1');
   const [durationSeconds, setDurationSeconds] = useState(DURATIONS[1].seconds);
   const [submitState, setSubmitState] = useState<SubmitState>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -130,9 +134,19 @@ export function CreateStreamForm({
   const balanceLoading = Boolean(address && selectedTokenAddress && !currentBalanceLookup);
   const balanceError = currentBalanceLookup?.error ?? false;
 
-  const depositRaw = parseAmount(amount, tokenDecimals ?? TOKEN_DECIMALS);
+  const parsedMonths = Math.max(1, parseInt(monthsCount, 10) || 1);
+  const monthlyCalc =
+    amountMode === 'monthly'
+      ? calculateMonthlyStream(monthlyAmount, parsedMonths, tokenDecimals ?? TOKEN_DECIMALS)
+      : null;
+
+  const depositRaw =
+    amountMode === 'monthly'
+      ? (monthlyCalc?.depositRaw ?? null)
+      : parseAmount(amount, tokenDecimals ?? TOKEN_DECIMALS);
   const isAmountValid = depositRaw !== null;
-  const amountErrorReason = getAmountErrorReason(amount, tokenDecimals ?? TOKEN_DECIMALS);
+  const activeAmountInput = amountMode === 'monthly' ? monthlyAmount : amount;
+  const amountErrorReason = getAmountErrorReason(activeAmountInput, tokenDecimals ?? TOKEN_DECIMALS);
   const amountError =
     amountErrorReason === 'precision'
       ? t('amountErrorPrecision', { decimals: tokenDecimals ?? TOKEN_DECIMALS })
@@ -142,6 +156,9 @@ export function CreateStreamForm({
           ? t('amountErrorNonPositive')
           : null;
 
+  const activeDurationSeconds =
+    amountMode === 'monthly' ? parsedMonths * SECONDS_PER_MONTH : durationSeconds;
+
   // Integer division truncates: a deposit that doesn't divide evenly by the
   // duration leaves a remainder the per-second rate can't carry (issue
   // #156). The deposit itself is still submitted in full -- the contract
@@ -149,11 +166,25 @@ export function CreateStreamForm({
   // balance until cancel/top-up rather than ever actually streaming out.
   // Surfaced below so the donor sees the real effective total up front
   // instead of only discovering the dust on cancel.
-  const rateRaw = depositRaw !== null ? depositRaw / BigInt(durationSeconds) : null;
+  const rateRaw =
+    amountMode === 'monthly'
+      ? (monthlyCalc?.rateRaw ?? null)
+      : depositRaw !== null
+        ? depositRaw / BigInt(activeDurationSeconds)
+        : null;
   const isRateValid = rateRaw !== null && rateRaw > 0n;
-  const effectiveStreamedRaw = rateRaw !== null ? rateRaw * BigInt(durationSeconds) : null;
+  const effectiveStreamedRaw =
+    amountMode === 'monthly'
+      ? (monthlyCalc?.effectiveStreamedRaw ?? null)
+      : rateRaw !== null
+        ? rateRaw * BigInt(activeDurationSeconds)
+        : null;
   const leftoverRaw =
-    depositRaw !== null && effectiveStreamedRaw !== null ? depositRaw - effectiveStreamedRaw : null;
+    amountMode === 'monthly'
+      ? (monthlyCalc?.leftoverRaw ?? null)
+      : depositRaw !== null && effectiveStreamedRaw !== null
+        ? depositRaw - effectiveStreamedRaw
+        : null;
 
   // For native XLM, reserve 1 XLM base account reserve + 0.1 XLM estimated fee buffer
   // so donors cannot deposit funds needed to cover transaction fees and minimum reserve.
@@ -235,7 +266,10 @@ export function CreateStreamForm({
     };
   }, [address, selectedTokenAddress, balanceRetryKey]);
 
-  const durationLabel = tDuration(`seconds${durationSeconds}`);
+  const durationLabel =
+    amountMode === 'monthly'
+      ? `${parsedMonths} ${t('monthUnit')}`
+      : tDuration(`seconds${durationSeconds}`);
 
   function handleTokenChoiceChange(choice: TokenChoice): void {
     setTokenChoice(choice);
@@ -261,7 +295,7 @@ export function CreateStreamForm({
     if (!canSubmit) {
       return;
     }
-    setConfirmationEndDate(new Date(Date.now() + durationSeconds * 1000));
+    setConfirmationEndDate(new Date(Date.now() + activeDurationSeconds * 1000));
     setSubmitState('confirming');
   }
 
@@ -316,6 +350,8 @@ export function CreateStreamForm({
         txToastAction(sent, tx),
       );
       setAmount('');
+      setMonthlyAmount('');
+      setMonthsCount('1');
       setDurationSeconds(DURATIONS[1].seconds);
       handleTokenChoiceChange('native');
       setCustomToken('');
@@ -432,96 +468,220 @@ export function CreateStreamForm({
         )}
       </fieldset>
 
-      <div className="block">
-        <label htmlFor="amount" className="text-sm font-medium">{t('totalAmount')}</label>
-        <input
-          id="amount"
-          type="number"
-          min="0"
-          step="any"
-          value={amount}
-          onChange={(event) => setAmount(event.target.value)}
-          placeholder="100"
-          aria-invalid={amountError !== null || (isAmountValid && !isRateValid) || undefined}
-          aria-describedby={
-            amountError !== null
-              ? 'amount-format-error'
-              : isAmountValid && !isRateValid
-                ? 'amount-error'
-                : undefined
-          }
-          className="mt-2 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 dark:border-gray-700 dark:bg-gray-900 dark:focus-visible:ring-teal-400"
-        />
-        <div className="mt-2 flex flex-wrap gap-2">
-          {PRESET_AMOUNTS.map((preset) => (
-            <button
-              key={preset}
-              type="button"
-              onClick={() => setAmount(String(preset))}
-              aria-label={t('setAmountTo', { amount: preset })}
-              className="rounded-md border border-gray-300 px-3 py-1 text-xs font-medium hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 dark:border-gray-700 dark:hover:bg-gray-800 dark:focus-visible:ring-teal-400"
-            >
-              {preset}
-            </button>
-          ))}
-          <button
-            type="button"
-            onClick={handleMaxClick}
-            disabled={maxSpendableRaw === null || maxSpendableRaw <= 0n}
-            aria-label={t('setAmountToMax')}
-            className="rounded-md border border-gray-300 px-3 py-1 text-xs font-medium hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 disabled:opacity-50 dark:border-gray-700 dark:hover:bg-gray-800 dark:focus-visible:ring-teal-400"
-          >
-            {t('max')}
-          </button>
+      <fieldset>
+        <legend className="text-sm font-medium">{t('amountMode')}</legend>
+        <div className="mt-2 flex gap-4 text-sm">
+          <label className="flex items-center gap-2">
+            <input
+              type="radio"
+              name="amountMode"
+              value="total"
+              checked={amountMode === 'total'}
+              onChange={() => setAmountMode('total')}
+            />
+            {t('modeTotal')}
+          </label>
+          <label className="flex items-center gap-2">
+            <input
+              type="radio"
+              name="amountMode"
+              value="monthly"
+              checked={amountMode === 'monthly'}
+              onChange={() => setAmountMode('monthly')}
+            />
+            {t('modeMonthly')}
+          </label>
         </div>
+      </fieldset>
 
-        {amountError !== null && (
-          <p id="amount-format-error" className="mt-1 text-sm text-amber-700 dark:text-amber-400">
-            {amountError}
+      {amountMode === 'monthly' ? (
+        <div className="space-y-4">
+          <div className="block">
+            <label htmlFor="monthlyAmount" className="text-sm font-medium">
+              {t('monthlyAmount')}
+            </label>
+            <input
+              id="monthlyAmount"
+              type="number"
+              min="0"
+              step="any"
+              value={monthlyAmount}
+              onChange={(event) => setMonthlyAmount(event.target.value)}
+              placeholder="50"
+              aria-label={t('monthlyAmount')}
+              aria-invalid={amountError !== null || (isAmountValid && !isRateValid) || undefined}
+              aria-describedby={
+                amountError !== null
+                  ? 'monthly-amount-format-error'
+                  : isAmountValid && !isRateValid
+                    ? 'monthly-amount-error'
+                    : undefined
+              }
+              className="mt-2 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 dark:border-gray-700 dark:bg-gray-900 dark:focus-visible:ring-teal-400"
+            />
+          </div>
+
+          <div className="block">
+            <label htmlFor="numberOfMonths" className="text-sm font-medium">
+              {t('numberOfMonths')}
+            </label>
+            <input
+              id="numberOfMonths"
+              type="number"
+              min="1"
+              max="120"
+              step="1"
+              value={monthsCount}
+              onChange={(event) => setMonthsCount(event.target.value)}
+              aria-label={t('numberOfMonths')}
+              className="mt-2 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 dark:border-gray-700 dark:bg-gray-900 dark:focus-visible:ring-teal-400"
+            />
+          </div>
+
+          {monthlyCalc !== null && (
+            <div
+              data-testid="monthly-preview"
+              className="rounded-md border border-gray-200 bg-gray-50 p-3 text-sm dark:border-gray-800 dark:bg-gray-900"
+            >
+              <p className="font-medium text-gray-900 dark:text-gray-100">
+                {t('previewTotal', {
+                  amount: formatAmount(
+                    monthlyCalc.depositRaw.toString(),
+                    tokenDecimals ?? TOKEN_DECIMALS,
+                    locale,
+                  ),
+                  months: parsedMonths,
+                })}
+              </p>
+            </div>
+          )}
+
+          {amountError !== null && (
+            <p id="monthly-amount-format-error" className="mt-1 text-sm text-amber-700 dark:text-amber-400">
+              {amountError}
+            </p>
+          )}
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            {balanceLoading
+              ? t('checkingWalletBalance')
+              : walletBalance !== null
+                ? t('walletBalance', {
+                    amount: formatAmount(walletBalance, tokenDecimals ?? TOKEN_DECIMALS, locale),
+                  })
+                : null}
           </p>
-        )}
-        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-          {balanceLoading
-            ? t('checkingWalletBalance')
-            : walletBalance !== null
-              ? t('walletBalance', {
-                  amount: formatAmount(walletBalance, tokenDecimals ?? TOKEN_DECIMALS, locale),
-                })
-              : null}
-        </p>
-        {balanceError && (
-          <p className="mt-1 flex items-center gap-2 text-sm text-amber-700 dark:text-amber-400">
-            {t('balanceError')}
+          {balanceError && (
+            <p className="mt-1 flex items-center gap-2 text-sm text-amber-700 dark:text-amber-400">
+              {t('balanceError')}
+              <button
+                type="button"
+                onClick={() => setBalanceRetryKey((key) => key + 1)}
+                className="font-medium underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 dark:focus-visible:ring-teal-400"
+              >
+                {t('retry')}
+              </button>
+            </p>
+          )}
+          {insufficientBalance && (
+            <p className="mt-1 text-sm text-amber-700 dark:text-amber-400">
+              {t('insufficientBalance')}
+            </p>
+          )}
+        </div>
+      ) : (
+        <div className="block">
+          <label htmlFor="amount" className="text-sm font-medium">{t('totalAmount')}</label>
+          <input
+            id="amount"
+            type="number"
+            min="0"
+            step="any"
+            value={amount}
+            onChange={(event) => setAmount(event.target.value)}
+            placeholder="100"
+            aria-invalid={amountError !== null || (isAmountValid && !isRateValid) || undefined}
+            aria-describedby={
+              amountError !== null
+                ? 'amount-format-error'
+                : isAmountValid && !isRateValid
+                  ? 'amount-error'
+                  : undefined
+            }
+            className="mt-2 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 dark:border-gray-700 dark:bg-gray-900 dark:focus-visible:ring-teal-400"
+          />
+          <div className="mt-2 flex flex-wrap gap-2">
+            {PRESET_AMOUNTS.map((preset) => (
+              <button
+                key={preset}
+                type="button"
+                onClick={() => setAmount(String(preset))}
+                aria-label={t('setAmountTo', { amount: preset })}
+                className="rounded-md border border-gray-300 px-3 py-1 text-xs font-medium hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 dark:border-gray-700 dark:hover:bg-gray-800 dark:focus-visible:ring-teal-400"
+              >
+                {preset}
+              </button>
+            ))}
             <button
               type="button"
-              onClick={() => setBalanceRetryKey((key) => key + 1)}
-              className="font-medium underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 dark:focus-visible:ring-teal-400"
+              onClick={handleMaxClick}
+              disabled={maxSpendableRaw === null || maxSpendableRaw <= 0n}
+              aria-label={t('setAmountToMax')}
+              className="rounded-md border border-gray-300 px-3 py-1 text-xs font-medium hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 disabled:opacity-50 dark:border-gray-700 dark:hover:bg-gray-800 dark:focus-visible:ring-teal-400"
             >
-              {t('retry')}
+              {t('max')}
             </button>
-          </p>
-        )}
-        {insufficientBalance && (
-          <p className="mt-1 text-sm text-amber-700 dark:text-amber-400">
-            {t('insufficientBalance')}
-          </p>
-        )}
-      </div>
+          </div>
 
-      <label className="block">
-        <span className="text-sm font-medium">{t('streamOver')}</span>
-        <select
-          value={durationSeconds}
-          onChange={(event) => setDurationSeconds(Number(event.target.value))}
-          className="mt-2 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 dark:border-gray-700 dark:bg-gray-900 dark:focus-visible:ring-teal-400"
-        >
-          {DURATIONS.map((d) => (
-            <option key={d.seconds} value={d.seconds}>
-              {tDuration(`seconds${d.seconds}`)}
-            </option>
-          ))}
-        </select>
-      </label>
+          {amountError !== null && (
+            <p id="amount-format-error" className="mt-1 text-sm text-amber-700 dark:text-amber-400">
+              {amountError}
+            </p>
+          )}
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            {balanceLoading
+              ? t('checkingWalletBalance')
+              : walletBalance !== null
+                ? t('walletBalance', {
+                    amount: formatAmount(walletBalance, tokenDecimals ?? TOKEN_DECIMALS, locale),
+                  })
+                : null}
+          </p>
+          {balanceError && (
+            <p className="mt-1 flex items-center gap-2 text-sm text-amber-700 dark:text-amber-400">
+              {t('balanceError')}
+              <button
+                type="button"
+                onClick={() => setBalanceRetryKey((key) => key + 1)}
+                className="font-medium underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 dark:focus-visible:ring-teal-400"
+              >
+                {t('retry')}
+              </button>
+            </p>
+          )}
+          {insufficientBalance && (
+            <p className="mt-1 text-sm text-amber-700 dark:text-amber-400">
+              {t('insufficientBalance')}
+            </p>
+          )}
+        </div>
+      )}
+
+      {amountMode === 'total' && (
+        <label className="block">
+          <span className="text-sm font-medium">{t('streamOver')}</span>
+          <select
+            value={durationSeconds}
+            onChange={(event) => setDurationSeconds(Number(event.target.value))}
+            className="mt-2 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 dark:border-gray-700 dark:bg-gray-900 dark:focus-visible:ring-teal-400"
+          >
+            {DURATIONS.map((d) => (
+              <option key={d.seconds} value={d.seconds}>
+                {tDuration(`seconds${d.seconds}`)}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
 
       {isAmountValid && rateRaw !== null && (
         <p id={!isRateValid ? 'amount-error' : undefined} className="text-sm text-gray-500 dark:text-gray-400">
@@ -593,7 +753,11 @@ export function CreateStreamForm({
                 ? 'usdcToken'
                 : 'customAsset',
           )}
-          amount={amount}
+          amount={
+            amountMode === 'monthly' && depositRaw !== null
+              ? formatAmount(depositRaw.toString(), tokenDecimals ?? TOKEN_DECIMALS, locale)
+              : amount
+          }
           rateRaw={rateRaw}
           decimals={tokenDecimals ?? TOKEN_DECIMALS}
           durationLabel={durationLabel}
