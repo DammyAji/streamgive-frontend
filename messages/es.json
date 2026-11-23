@@ -385,5 +385,10 @@
       "recipient": "Destinatario",
       "actions": "Acciones"
     }
+  },
+  "Offline": {
+    "title": "Estás sin conexión",
+    "description": "Parece que has perdido tu conexión a internet. Algunas funciones pueden no estar disponibles hasta que te reconectes.",
+    "retry": "Reintentar"
   }
 }

@@ -385,5 +385,10 @@
       "recipient": "Recipient",
       "actions": "Actions"
     }
+  },
+  "Offline": {
+    "title": "You are offline",
+    "description": "It looks like you've lost your internet connection. Some features may be unavailable until you reconnect.",
+    "retry": "Try again"
   }
 }
