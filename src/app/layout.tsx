@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 
 import { AppShell } from '@/components/common/AppShell';
+import { ServiceWorkerRegister } from '@/components/common/ServiceWorkerRegister';
 import { THEME_INIT_SCRIPT } from '@/lib/theme';
 
 import './globals.css';
@@ -81,6 +82,7 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} bg-white text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-100`}
       >
         <NextIntlClientProvider locale={locale} messages={messages}>
+          <ServiceWorkerRegister />
           <AppShell>{children}</AppShell>
         </NextIntlClientProvider>
       </body>

@@ -248,6 +248,13 @@
     "invalidTokenAddress": "Must be a Stellar contract address starting with C followed by 55 uppercase letters or digits 2–7.",
     "checkingTokenDecimals": "Checking this token's decimals…",
     "tokenDecimalsError": "Couldn't read this token's decimals — it may not be a valid token contract. Streaming it is blocked until this can be confirmed.",
+    "amountMode": "Donation mode",
+    "modeTotal": "Total amount",
+    "modeMonthly": "Monthly amount",
+    "monthlyAmount": "Amount per month",
+    "numberOfMonths": "Number of months",
+    "monthUnit": "months",
+    "previewTotal": "Total deposit: {amount} over {months} months",
     "totalAmount": "Total amount",
     "setAmountTo": "Set amount to {amount}",
     "setAmountToMax": "Set amount to max",
@@ -291,17 +298,13 @@
     "contractError8": "This NGO is not verified and cannot receive streams at this time.",
     "contractError9": "This token isn't accepted by the donation vault.",
     "contractError10": "Your wallet balance is too low to cover this deposit."
-  }
-}
-{
+  },
   "Metadata": {
     "title": "StreamGive — Transparent Donations for NGOs",
     "description": "Support trusted NGOs and make a meaningful impact through transparent donations.",
     "ogTitle": "StreamGive — Give transparently, make an impact",
     "ogDescription": "Discover NGOs, support meaningful causes, and make transparent donations."
-  }
-}
-{
+  },
   "PlatformAdmin": {
     "title": "Platform Administration",
     "description": "Manage NGO applications and approvals.",
@@ -352,9 +355,7 @@
       "reject": "Failed to reject application.",
       "revoke": "Failed to revoke approval."
     }
-  }
-}
-{
+  },
   "NgoAdmin": {
     "withdrawals": {
       "title": "Withdrawals",
@@ -384,5 +385,10 @@
       "recipient": "Recipient",
       "actions": "Actions"
     }
+  },
+  "Offline": {
+    "title": "You are offline",
+    "description": "It looks like you've lost your internet connection. Some features may be unavailable until you reconnect.",
+    "retry": "Try again"
   }
 }
