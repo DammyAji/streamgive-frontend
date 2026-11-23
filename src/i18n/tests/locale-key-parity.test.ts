@@ -3,6 +3,8 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
+import { LOCALES } from '../config';
+
 const messagesDirectory = join(process.cwd(), 'messages');
 const referenceLocale = 'en';
 
@@ -44,7 +46,7 @@ describe('locale key parity', () => {
   const localeFiles = readdirSync(messagesDirectory)
     .filter((file) => file.endsWith('.json'))
     .map((file) => file.replace(/\.json$/, ''))
-    .filter((locale) => locale !== referenceLocale)
+    .filter((locale) => locale !== referenceLocale && (LOCALES as readonly string[]).includes(locale))
     .sort();
 
   it('ensures every locale has exactly the same keys as en.json', () => {

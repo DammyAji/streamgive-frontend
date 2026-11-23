@@ -102,7 +102,8 @@
     "hoursRemaining": "Quedan ~{count, plural, one {# hora} other {# horas}}",
     "daysRemaining": "Quedan ~{count, plural, one {# día} other {# días}}",
     "viewDetails": "Ver detalles",
-    "loadMore": "Cargar más"
+    "loadMore": "Cargar más",
+    "endedStreamsSection": "Flujos finalizados ({count})"
   },
   "StreamControls": {
     "topUpSuccess": "Flujo recargado. Puede tardar unos segundos en aparecer abajo.",
@@ -248,6 +249,13 @@
     "invalidTokenAddress": "Debe ser una dirección de contrato Stellar que empiece por C y continúe con 55 letras mayúsculas o dígitos del 2 al 7.",
     "checkingTokenDecimals": "Comprobando los decimales de este token…",
     "tokenDecimalsError": "No se pudieron consultar los decimales de este token. Puede que no sea un contrato de token válido. No se puede iniciar el flujo hasta comprobarlo.",
+    "amountMode": "Modo de donación",
+    "modeTotal": "Importe total",
+    "modeMonthly": "Importe mensual",
+    "monthlyAmount": "Importe por mes",
+    "numberOfMonths": "Número de meses",
+    "monthUnit": "meses",
+    "previewTotal": "Depósito total: {amount} durante {months} meses",
     "totalAmount": "Importe total",
     "setAmountTo": "Establecer el importe en {amount}",
     "setAmountToMax": "Establecer el importe máximo",
@@ -291,17 +299,13 @@
     "contractError8": "Esta ONG no está verificada y no puede recibir flujos en este momento.",
     "contractError9": "El contrato de donaciones no acepta este token.",
     "contractError10": "El saldo de tu billetera es insuficiente para cubrir este depósito."
-  }
-}
-{
+  },
   "Metadata": {
     "title": "StreamGive — Donaciones transparentes para ONG",
     "description": "Apoya a organizaciones confiables y genera un impacto significativo mediante donaciones transparentes.",
     "ogTitle": "StreamGive — Dona con transparencia, genera impacto",
     "ogDescription": "Descubre ONG, apoya causas importantes y realiza donaciones transparentes."
-  }
-}
-{
+  },
   "PlatformAdmin": {
     "title": "Administración de la plataforma",
     "description": "Gestiona las solicitudes y aprobaciones de ONG.",
@@ -352,9 +356,7 @@
       "reject": "No se pudo rechazar la solicitud.",
       "revoke": "No se pudo revocar la aprobación."
     }
-  }
-}
-{
+  },
   "NgoAdmin": {
     "withdrawals": {
       "title": "Retiros",
@@ -384,5 +386,10 @@
       "recipient": "Destinatario",
       "actions": "Acciones"
     }
+  },
+  "Offline": {
+    "title": "Estás sin conexión",
+    "description": "Parece que has perdido tu conexión a internet. Algunas funciones pueden no estar disponibles hasta que te reconectes.",
+    "retry": "Reintentar"
   }
 }
