@@ -291,17 +291,13 @@
     "contractError8": "Esta ONG no está verificada y no puede recibir flujos en este momento.",
     "contractError9": "El contrato de donaciones no acepta este token.",
     "contractError10": "El saldo de tu billetera es insuficiente para cubrir este depósito."
-  }
-}
-{
+  },
   "Metadata": {
     "title": "StreamGive — Donaciones transparentes para ONG",
     "description": "Apoya a organizaciones confiables y genera un impacto significativo mediante donaciones transparentes.",
     "ogTitle": "StreamGive — Dona con transparencia, genera impacto",
     "ogDescription": "Descubre ONG, apoya causas importantes y realiza donaciones transparentes."
-  }
-}
-{
+  },
   "PlatformAdmin": {
     "title": "Administración de la plataforma",
     "description": "Gestiona las solicitudes y aprobaciones de ONG.",
@@ -352,9 +348,7 @@
       "reject": "No se pudo rechazar la solicitud.",
       "revoke": "No se pudo revocar la aprobación."
     }
-  }
-}
-{
+  },
   "NgoAdmin": {
     "withdrawals": {
       "title": "Retiros",
