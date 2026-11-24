@@ -23,7 +23,13 @@ export default defineConfig({
     // Every spec that needs no wallet extension; this is what CI runs.
     {
       name: 'chromium',
-      testIgnore: ['**/wallet-flow.spec.ts'],
+      testIgnore: ['**/wallet-flow.spec.ts', '**/visual.spec.ts'],
+      use: { ...devices['Desktop Chrome'] },
+    },
+    // Screenshot comparisons; run with `npm run test:visual`.
+    {
+      name: 'visual',
+      testMatch: ['**/visual.spec.ts'],
       use: { ...devices['Desktop Chrome'] },
     },
     // Needs a local Freighter setup (see the spec), so it is not run in CI.

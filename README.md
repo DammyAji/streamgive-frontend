@@ -190,6 +190,14 @@ This table lists every route under `src/app`, who it is meant for, and its techn
 
 See the [Embed Widget Guide](./docs/EMBED.md) for details on embedding the `/embed/[ngoId]` widget.
 
+## Visual regression tests
+
+`e2e/visual.spec.ts` takes full-page screenshots of the landing, explorer and
+disconnected dashboard pages in light and dark mode at desktop and mobile
+widths. Run them with `npm run test:visual`. After an intended UI change,
+regenerate the baselines with `npm run test:visual:update` and commit the
+updated images from `e2e/visual.spec.ts-snapshots/`.
+
 ## Contributing
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for the accessibility checklist to
