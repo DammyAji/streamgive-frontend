@@ -2,6 +2,9 @@
 
 import { useWallet } from '@/components/wallet/WalletProvider';
 
+const WALLET_TROUBLESHOOTING_URL =
+  'https://github.com/StreamGive/streamgive-frontend/blob/main/docs/WALLET_TROUBLESHOOTING.md';
+
 /**
  * The "please connect your wallet" card shown in place of a protected
  * page/form's content — dashboard, NGO admin, platform admin, and the
@@ -40,6 +43,16 @@ export function ConnectWalletPrompt({
       >
         Connect Wallet
       </button>
+      <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
+        <a
+          href={WALLET_TROUBLESHOOTING_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline hover:text-gray-700 dark:hover:text-gray-200"
+        >
+          Trouble connecting?
+        </a>
+      </p>
     </div>
   );
 }
