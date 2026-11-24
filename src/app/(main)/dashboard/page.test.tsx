@@ -84,6 +84,30 @@ describe('DashboardPage', () => {
     });
   });
 
+  it('shows a stream memo on the card, and nothing for an empty one', async () => {
+    mockConnectedWallet();
+    vi.spyOn(ApiMod, 'getStreams').mockResolvedValue([
+      makeStream({ id: 's1', memo: 'Spring campaign' }),
+      makeStream({ id: 's2', memo: '', ngo: { id: 'ngo-2', name: 'Other NGO', ownerAddress: 'GOTHER' } }),
+    ]);
+
+    renderWithIntl(<DashboardPage />);
+
+    expect(await screen.findByText('Spring campaign')).toBeInTheDocument();
+    expect(screen.getByText('Other NGO')).toBeInTheDocument();
+    expect(screen.getAllByText('Spring campaign')).toHaveLength(1);
+  });
+
+  it('clamps a very long memo on the card', async () => {
+    mockConnectedWallet();
+    const memo = 'y'.repeat(500);
+    vi.spyOn(ApiMod, 'getStreams').mockResolvedValue([makeStream({ memo })]);
+
+    renderWithIntl(<DashboardPage />);
+
+    expect(await screen.findByText(memo)).toHaveClass('line-clamp-2', 'break-words');
+  });
+
   it('does not render the empty state before the first fetch resolves', async () => {
     vi.spyOn(WalletProviderMod, 'useWallet').mockReturnValue({
       address: 'G123',

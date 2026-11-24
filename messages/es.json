@@ -170,6 +170,7 @@
     "active": "Activo",
     "cancelled": "Cancelado",
     "paused": "En pausa",
+    "memo": "Nota",
     "ngo": "ONG",
     "donor": "Donante",
     "token": "Token",
