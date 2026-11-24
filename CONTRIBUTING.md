@@ -211,6 +211,15 @@ and typecheck, plus `npm test`, `npm run build`, and the navigation-only
 Playwright spec `e2e/donor-flow.spec.ts`. The Prettier check (`npm run format`)
 is a local contributor check; it does not currently run in CI.
 
+### Pre-commit hook
+
+`npm install` sets up [husky](https://typicode.github.io/husky/) through the
+`prepare` script. On each commit, `lint-staged` runs ESLint and Prettier on the
+staged files only (see the `lint-staged` block in `package.json`).
+
+To skip it for one commit, use `git commit --no-verify` (or `HUSKY=0 git commit`).
+CI still runs lint and typecheck, so a skipped hook only moves the failure later.
+
 ## Accessibility checklist
 
 This project has already had a pass of accessibility fixes (color contrast,
