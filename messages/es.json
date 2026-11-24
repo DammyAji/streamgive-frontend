@@ -63,6 +63,9 @@
     "connectWallet": "Conectar billetera",
     "troubleConnecting": "¿Problemas para conectar?"
   },
+  "ImpactPage": {
+    "updated": "Actualizado {time}"
+  },
   "RouteProgressBar": {
     "loadingPage": "Cargando página"
   },

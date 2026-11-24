@@ -63,6 +63,9 @@
     "connectWallet": "Connect Wallet",
     "troubleConnecting": "Trouble connecting?"
   },
+  "ImpactPage": {
+    "updated": "Updated {time}"
+  },
   "RouteProgressBar": {
     "loadingPage": "Loading page"
   },

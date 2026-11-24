@@ -62,6 +62,9 @@
     "connectWallet": "Connecter le portefeuille",
     "troubleConnecting": "Un problème de connexion ?"
   },
+  "ImpactPage": {
+    "updated": "Mis à jour {time}"
+  },
   "RouteProgressBar": {
     "loadingPage": "Chargement de la page"
   },
