@@ -1,9 +1,11 @@
 'use client';
 
+import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 import { formatAmount } from '@/lib/format';
 import { loadPlatformImpact, type PlatformImpact } from '@/lib/impact';
+import { useSharedClock } from '@/lib/useSharedClock';
 
 // Polling architecture (acknowledged tech debt — see README's Troubleshooting
 // section for the user-facing symptom):
@@ -18,7 +20,19 @@ import { loadPlatformImpact, type PlatformImpact } from '@/lib/impact';
 // backend gains a real aggregate/streaming endpoint.
 const POLL_INTERVAL_MS = 20_000;
 
+function formatElapsed(locale: string, elapsedMs: number): string {
+  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+  const seconds = Math.max(0, Math.round(elapsedMs / 1000));
+  if (seconds < 60) return rtf.format(-seconds, 'second');
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return rtf.format(-minutes, 'minute');
+  return rtf.format(-Math.floor(minutes / 60), 'hour');
+}
+
 export default function ImpactPage() {
+  const t = useTranslations('ImpactPage');
+  const locale = useLocale();
+  const now = useSharedClock();
   const [impact, setImpact] = useState<PlatformImpact | null>(null);
   const [loadError, setLoadError] = useState(false);
   // Time of the last successful load, shown if a later refresh fails.
@@ -163,6 +177,14 @@ export default function ImpactPage() {
               <dd className="text-2xl font-bold">{impact.ngoCount}</dd>
             </div>
           </dl>
+        )}
+
+        {impact && lastUpdated && (
+          <p className="mt-4 text-xs text-gray-500 dark:text-gray-400">
+            {t('updated', {
+              time: formatElapsed(locale, Math.max(now, lastUpdated.getTime()) - lastUpdated.getTime()),
+            })}
+          </p>
         )}
       </main>
   );

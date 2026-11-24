@@ -58,6 +58,17 @@
     "installWallet": "Install one of these, then try again:",
     "dismiss": "Dismiss"
   },
+  "ConnectWalletPrompt": {
+    "loading": "Loading…",
+    "connectWallet": "Connect Wallet",
+    "troubleConnecting": "Trouble connecting?"
+  },
+  "ImpactPage": {
+    "updated": "Updated {time}"
+  },
+  "RouteProgressBar": {
+    "loadingPage": "Loading page"
+  },
   "ThemeToggle": {
     "toggleTheme": "Toggle theme",
     "switchToDark": "Switch to dark mode",
@@ -83,6 +94,7 @@
     "all": "All",
     "active": "Active",
     "cancelled": "Cancelled",
+    "paused": "Paused",
     "sortLabel": "Sort:",
     "sortBy": "Sort by",
     "newest": "Newest",
@@ -139,7 +151,17 @@
     "modifyRate": "Modify rate",
     "updating": "Updating…",
     "cancel": "Cancel",
-    "cancelling": "Cancelling…"
+    "cancelling": "Cancelling…",
+    "pause": "Pause",
+    "pausing": "Pausing…",
+    "resume": "Resume",
+    "resuming": "Resuming…",
+    "pausePrompt": "Pause this stream? Payments stop until you resume it.",
+    "yesPause": "Yes, pause",
+    "resumePrompt": "Resume this stream?",
+    "yesResume": "Yes, resume",
+    "pauseSuccess": "Stream paused — may take a few seconds to show below.",
+    "resumeSuccess": "Stream resumed — may take a few seconds to show below."
   },
   "StreamDetails": {
     "heading": "Stream details",
@@ -147,6 +169,8 @@
     "status": "Status",
     "active": "Active",
     "cancelled": "Cancelled",
+    "paused": "Paused",
+    "memo": "Memo",
     "ngo": "NGO",
     "donor": "Donor",
     "token": "Token",

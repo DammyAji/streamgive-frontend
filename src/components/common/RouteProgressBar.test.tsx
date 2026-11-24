@@ -1,5 +1,7 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { renderWithIntl } from '@/test/renderWithIntl';
 
 import { RouteProgressBar } from './RouteProgressBar';
 
@@ -20,14 +22,15 @@ function preventNavigation(event: MouseEvent) {
   event.preventDefault();
 }
 
-function renderProgressBar(href = '/dashboard', target?: string) {
-  return render(
+function renderProgressBar(href = '/dashboard', target?: string, locale: 'en' | 'es' = 'en') {
+  return renderWithIntl(
     <>
       <RouteProgressBar />
       <a href={href} target={target}>
         <span>Destination</span>
       </a>
     </>,
+    locale,
   );
 }
 
@@ -48,6 +51,14 @@ describe('RouteProgressBar', () => {
     renderProgressBar();
 
     expect(screen.queryByRole('status', { name: 'Loading page' })).not.toBeInTheDocument();
+  });
+
+  it('announces the loading state in Spanish', () => {
+    renderProgressBar('/dashboard', undefined, 'es');
+
+    fireEvent.click(screen.getByText('Destination'));
+
+    expect(screen.getByRole('status', { name: 'Cargando página' })).toBeInTheDocument();
   });
 
   it.each(['relative', 'absolute'])('shows for a %s same-origin link click', (kind) => {

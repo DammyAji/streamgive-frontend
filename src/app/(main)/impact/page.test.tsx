@@ -252,3 +252,41 @@ describe('ImpactPage hidden tab polling (issue #438)', () => {
     expect(loadPlatformImpact).toHaveBeenCalledTimes(3);
   });
 });
+
+describe('ImpactPage last updated time (issue #448)', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.mocked(loadPlatformImpact).mockReset();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  it('shows a relative time that keeps counting up', async () => {
+    vi.mocked(loadPlatformImpact).mockResolvedValue(IMPACT);
+
+    renderWithIntl(<ImpactPage />);
+    await vi.waitFor(() => expect(screen.getByText(/^Updated /)).toBeInTheDocument());
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(12_000);
+    });
+
+    expect(screen.getByText('Updated 12 seconds ago')).toBeInTheDocument();
+  });
+
+  it('localises the relative time', async () => {
+    vi.mocked(loadPlatformImpact).mockResolvedValue(IMPACT);
+
+    renderWithIntl(<ImpactPage />, 'es');
+    await vi.waitFor(() => expect(screen.getByText(/^Actualizado /)).toBeInTheDocument());
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(12_000);
+    });
+
+    expect(screen.getByText('Actualizado hace 12 segundos')).toBeInTheDocument();
+  });
+});

@@ -30,6 +30,11 @@ export type DonationVaultMethods = {
 
   modify_rate(args: { stream_id: bigint; new_rate: bigint }): Promise<AssembledTransaction<null>>;
 
+  /** Returns the amount accrued to the NGO up to the pause. */
+  pause_stream(args: { stream_id: bigint }): Promise<AssembledTransaction<bigint>>;
+
+  resume_stream(args: { stream_id: bigint }): Promise<AssembledTransaction<null>>;
+
   withdraw(args: { stream_id: bigint }): Promise<AssembledTransaction<null>>;
 
   /** Read-only view: the amount `withdraw` would pay out right now. Read

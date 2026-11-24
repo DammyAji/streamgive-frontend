@@ -57,6 +57,17 @@
     "installWallet": "Installez l'un de ces portefeuilles, puis réessayez :",
     "dismiss": "Fermer"
   },
+  "ConnectWalletPrompt": {
+    "loading": "Chargement…",
+    "connectWallet": "Connecter le portefeuille",
+    "troubleConnecting": "Un problème de connexion ?"
+  },
+  "ImpactPage": {
+    "updated": "Mis à jour {time}"
+  },
+  "RouteProgressBar": {
+    "loadingPage": "Chargement de la page"
+  },
   "ThemeToggle": {
     "toggleTheme": "Changer de thème",
     "switchToDark": "Passer en mode sombre",
@@ -82,6 +93,7 @@
     "all": "Tous",
     "active": "Actifs",
     "cancelled": "Annulés",
+    "paused": "En pause",
     "sortLabel": "Trier :",
     "sortBy": "Trier par",
     "newest": "Les plus récents",
@@ -138,7 +150,17 @@
     "modifyRate": "Modifier le débit",
     "updating": "Mise à jour…",
     "cancel": "Annuler",
-    "cancelling": "Annulation…"
+    "cancelling": "Annulation…",
+    "pause": "Mettre en pause",
+    "pausing": "Mise en pause…",
+    "resume": "Reprendre",
+    "resuming": "Reprise…",
+    "pausePrompt": "Mettre ce flux en pause ? Les paiements s'arrêtent jusqu'à la reprise.",
+    "yesPause": "Oui, mettre en pause",
+    "resumePrompt": "Reprendre ce flux ?",
+    "yesResume": "Oui, reprendre",
+    "pauseSuccess": "Flux mis en pause — l'affichage ci-dessous peut prendre quelques secondes.",
+    "resumeSuccess": "Flux repris — l'affichage ci-dessous peut prendre quelques secondes."
   },
   "StreamDetails": {
     "heading": "Détails du flux",
@@ -146,6 +168,8 @@
     "status": "Statut",
     "active": "Actif",
     "cancelled": "Annulé",
+    "paused": "En pause",
+    "memo": "Mémo",
     "ngo": "ONG",
     "donor": "Donateur",
     "token": "Jeton",

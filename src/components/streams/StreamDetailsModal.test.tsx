@@ -52,6 +52,28 @@ describe('StreamDetailsModal', () => {
     );
   });
 
+  it('shows the memo as plain text', () => {
+    const memo = '<b>Spring campaign</b>';
+    renderWithIntl(<StreamDetailsModal stream={{ ...MOCK_STREAM, memo }} onClose={vi.fn()} />);
+
+    expect(screen.getByText('Memo')).toBeInTheDocument();
+    expect(screen.getByText(memo)).toBeInTheDocument();
+    expect(screen.getByRole('dialog').querySelector('b')).toBeNull();
+  });
+
+  it('omits the memo row when the memo is empty', () => {
+    renderWithIntl(<StreamDetailsModal stream={{ ...MOCK_STREAM, memo: '  ' }} onClose={vi.fn()} />);
+
+    expect(screen.queryByText('Memo')).not.toBeInTheDocument();
+  });
+
+  it('keeps a very long memo in the dialog and lets it wrap', () => {
+    const memo = 'x'.repeat(500);
+    renderWithIntl(<StreamDetailsModal stream={{ ...MOCK_STREAM, memo }} onClose={vi.fn()} />);
+
+    expect(screen.getByText(memo)).toHaveClass('break-words');
+  });
+
   it('calls onClose when clicking the modal backdrop', () => {
     const onClose = vi.fn();
     renderWithIntl(<StreamDetailsModal stream={MOCK_STREAM} onClose={onClose} />);

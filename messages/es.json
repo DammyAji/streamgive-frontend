@@ -58,6 +58,17 @@
     "installWallet": "Instala una de estas opciones y vuelve a intentarlo:",
     "dismiss": "Cerrar"
   },
+  "ConnectWalletPrompt": {
+    "loading": "Cargando…",
+    "connectWallet": "Conectar billetera",
+    "troubleConnecting": "¿Problemas para conectar?"
+  },
+  "ImpactPage": {
+    "updated": "Actualizado {time}"
+  },
+  "RouteProgressBar": {
+    "loadingPage": "Cargando página"
+  },
   "ThemeToggle": {
     "toggleTheme": "Cambiar tema",
     "switchToDark": "Cambiar al modo oscuro",
@@ -83,6 +94,7 @@
     "all": "Todos",
     "active": "Activo",
     "cancelled": "Cancelado",
+    "paused": "En pausa",
     "sortLabel": "Ordenar:",
     "sortBy": "Ordenar por",
     "newest": "Más recientes",
@@ -139,7 +151,17 @@
     "modifyRate": "Modificar tasa",
     "updating": "Actualizando…",
     "cancel": "Cancelar",
-    "cancelling": "Cancelando…"
+    "cancelling": "Cancelando…",
+    "pause": "Pausar",
+    "pausing": "Pausando…",
+    "resume": "Reanudar",
+    "resuming": "Reanudando…",
+    "pausePrompt": "¿Pausar este flujo? Los pagos se detienen hasta que lo reanudes.",
+    "yesPause": "Sí, pausar",
+    "resumePrompt": "¿Reanudar este flujo?",
+    "yesResume": "Sí, reanudar",
+    "pauseSuccess": "Flujo en pausa — puede tardar unos segundos en verse abajo.",
+    "resumeSuccess": "Flujo reanudado — puede tardar unos segundos en verse abajo."
   },
   "StreamDetails": {
     "heading": "Detalles del flujo",
@@ -147,6 +169,8 @@
     "status": "Estado",
     "active": "Activo",
     "cancelled": "Cancelado",
+    "paused": "En pausa",
+    "memo": "Nota",
     "ngo": "ONG",
     "donor": "Donante",
     "token": "Token",

@@ -480,8 +480,23 @@ export default function DashboardPage() {
                       >
                         {stream.ngo.name}
                       </Link>
+                      {stream.memo?.trim() && (
+                        <p
+                          title={stream.memo}
+                          className="mt-1 line-clamp-2 max-w-md break-words text-sm text-gray-700 dark:text-gray-300"
+                        >
+                          {stream.memo}
+                        </p>
+                      )}
                       <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                        {t(stream.status === 'ACTIVE' ? 'active' : 'cancelled')} · {t('balance')}{' '}
+                        {stream.status === 'PAUSED' ? (
+                          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900 dark:text-amber-300">
+                            {t('paused')}
+                          </span>
+                        ) : (
+                          t(stream.status === 'ACTIVE' ? 'active' : 'cancelled')
+                        )}{' '}
+                        · {t('balance')}{' '}
                         <LiveBalance stream={stream} /> · {t('withdrawn')} {formatTokenAmount(stream.withdrawn, stream.tokenAddress)}
                         {stream.status === 'ACTIVE' && remainingTime(stream)
                           ? ` · ${remainingTime(stream)}`
@@ -496,7 +511,7 @@ export default function DashboardPage() {
                       >
                         {t('viewDetails')}
                       </button>
-                      {stream.status === 'ACTIVE' && (
+                      {(stream.status === 'ACTIVE' || stream.status === 'PAUSED') && (
                         <StreamControls stream={stream} onChanged={refresh} />
                       )}
                     </div>
