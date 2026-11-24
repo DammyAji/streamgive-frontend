@@ -130,7 +130,8 @@ export type Stream = {
   rate: string;
   balance: string;
   withdrawn: string;
-  status: 'ACTIVE' | 'CANCELLED';
+  /** PAUSED is only sent by backends that track paused streams. */
+  status: 'ACTIVE' | 'PAUSED' | 'CANCELLED';
   createdAt: string;
   updatedAt: string;
   /** Optional start time of a stream created with a delayed start. */

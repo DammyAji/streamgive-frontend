@@ -107,7 +107,7 @@ export function StreamDetailsModal({ stream, onClose }: { stream: Stream; onClos
         <dl className="mt-6 space-y-4 text-sm">
           <div className="flex items-center justify-between gap-4">
             <dt className="text-gray-500 dark:text-gray-400">{t('status')}</dt>
-            <dd className="font-medium">{t(stream.status === 'ACTIVE' ? 'active' : 'cancelled')}</dd>
+            <dd className="font-medium">{t(stream.status === 'ACTIVE' ? 'active' : stream.status === 'PAUSED' ? 'paused' : 'cancelled')}</dd>
           </div>
           <div className="flex items-center justify-between gap-4">
             <dt className="text-gray-500 dark:text-gray-400">{t('ngo')}</dt>

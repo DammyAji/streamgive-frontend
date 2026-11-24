@@ -123,7 +123,7 @@ export function NgoAdminStreamList({
                     <CopyAddressButton address={stream.donor.address} />
                   </div>
                   <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    {stream.status === 'ACTIVE' ? 'Active' : 'Cancelled'} · Balance{' '}
+                    {stream.status === 'ACTIVE' ? 'Active' : stream.status === 'PAUSED' ? 'Paused' : 'Cancelled'} · Balance{' '}
                     {formatTokenAmount(stream.balance, stream.tokenAddress)} · Withdrawn{' '}
                     {formatTokenAmount(stream.withdrawn, stream.tokenAddress)}
                   </p>

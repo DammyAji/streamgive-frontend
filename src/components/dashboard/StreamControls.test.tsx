@@ -55,11 +55,15 @@ function clientReturning(overrides: {
   top_up?: ActionResult;
   modify_rate?: ActionResult;
   cancel_stream?: ActionResult;
+  pause_stream?: ActionResult;
+  resume_stream?: ActionResult;
 }) {
   return {
     top_up: vi.fn(overrides.top_up ?? (async () => neverSettles())),
     modify_rate: vi.fn(overrides.modify_rate ?? (async () => neverSettles())),
     cancel_stream: vi.fn(overrides.cancel_stream ?? (async () => neverSettles())),
+    pause_stream: vi.fn(overrides.pause_stream ?? (async () => neverSettles())),
+    resume_stream: vi.fn(overrides.resume_stream ?? (async () => neverSettles())),
   };
 }
 
@@ -479,6 +483,60 @@ describe('StreamControls', () => {
 
       expect(await screen.findByRole('button', { name: 'Cancel' })).toBeEnabled();
       expect(showToast).toHaveBeenCalledWith('error', 'Network error');
+    });
+  });
+
+  describe('pause and resume', () => {
+    const PAUSED_STREAM: Stream = { ...STREAM, status: 'PAUSED' };
+
+    it('hides Pause when the API does not report a paused status', () => {
+      renderWithIntl(<StreamControls stream={STREAM} onChanged={vi.fn()} />);
+
+      expect(screen.queryByRole('button', { name: 'Pause' })).not.toBeInTheDocument();
+    });
+
+    it('asks for confirmation, then pauses the stream on chain', async () => {
+      const client = clientReturning({
+        pause_stream: async () => ({ signAndSend: async () => {} }),
+      });
+      useDonationVaultClient.mockReturnValue({ client, ready: true });
+      const onChanged = vi.fn();
+      const user = userEvent.setup();
+      renderWithIntl(<StreamControls stream={STREAM} onChanged={onChanged} pauseSupported />);
+
+      await user.click(screen.getByRole('button', { name: 'Pause' }));
+      expect(client.pause_stream).not.toHaveBeenCalled();
+      await user.click(screen.getByRole('button', { name: 'Yes, pause' }));
+
+      expect(await screen.findByRole('button', { name: 'Pause' })).toBeEnabled();
+      expect(client.pause_stream).toHaveBeenCalledWith({ stream_id: 1n });
+      expect(onChanged).toHaveBeenCalledTimes(1);
+      expect(showToast).toHaveBeenCalledWith(
+        'success',
+        expect.stringContaining('Stream paused'),
+        undefined,
+      );
+    });
+
+    it('offers Resume for a paused stream and resumes it on chain', async () => {
+      const client = clientReturning({
+        resume_stream: async () => ({ signAndSend: async () => {} }),
+      });
+      useDonationVaultClient.mockReturnValue({ client, ready: true });
+      const user = userEvent.setup();
+      renderWithIntl(<StreamControls stream={PAUSED_STREAM} onChanged={vi.fn()} />);
+
+      expect(screen.queryByRole('button', { name: 'Top up' })).not.toBeInTheDocument();
+      await user.click(screen.getByRole('button', { name: 'Resume' }));
+      await user.click(screen.getByRole('button', { name: 'Yes, resume' }));
+
+      expect(await screen.findByRole('button', { name: 'Resume' })).toBeEnabled();
+      expect(client.resume_stream).toHaveBeenCalledWith({ stream_id: 1n });
+      expect(showToast).toHaveBeenCalledWith(
+        'success',
+        expect.stringContaining('Stream resumed'),
+        undefined,
+      );
     });
   });
 
