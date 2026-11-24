@@ -58,6 +58,14 @@
     "installWallet": "Install one of these, then try again:",
     "dismiss": "Dismiss"
   },
+  "ConnectWalletPrompt": {
+    "loading": "Loading…",
+    "connectWallet": "Connect Wallet",
+    "troubleConnecting": "Trouble connecting?"
+  },
+  "RouteProgressBar": {
+    "loadingPage": "Loading page"
+  },
   "ThemeToggle": {
     "toggleTheme": "Toggle theme",
     "switchToDark": "Switch to dark mode",

@@ -57,6 +57,14 @@
     "installWallet": "Installez l'un de ces portefeuilles, puis réessayez :",
     "dismiss": "Fermer"
   },
+  "ConnectWalletPrompt": {
+    "loading": "Chargement…",
+    "connectWallet": "Connecter le portefeuille",
+    "troubleConnecting": "Un problème de connexion ?"
+  },
+  "RouteProgressBar": {
+    "loadingPage": "Chargement de la page"
+  },
   "ThemeToggle": {
     "toggleTheme": "Changer de thème",
     "switchToDark": "Passer en mode sombre",
