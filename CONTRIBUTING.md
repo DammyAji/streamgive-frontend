@@ -67,6 +67,44 @@ needed. Checks wait for populated content and fail if it cannot load.
 Playwright starts the frontend automatically, or you can set `E2E_BASE_URL`
 to an already-running frontend as described above.
 
+### End-to-end tests (E2E)
+
+The Playwright specs live in `e2e/` and run in Chromium only.
+
+```bash
+npx playwright install chromium            # one-off browser download
+npm run test:e2e                           # every spec (starts npm run dev for you)
+npx playwright test e2e/mobile-nav.spec.ts # a single spec file
+npx playwright test -g "theme preference"  # specs whose title matches
+npx playwright test --headed --debug       # watch the browser and step through
+npx playwright show-report                 # open the last HTML report
+```
+
+Set `E2E_BASE_URL` to test an already-running instance instead of letting
+Playwright start the dev server.
+
+**Which specs need a wallet.** Only `e2e/wallet-flow.spec.ts` does. It drives
+a real Freighter extension against testnet, so it is skipped unless
+`E2E_FREIGHTER_PATH` points at an unpacked Freighter folder whose profile
+already has a funded testnet account (see the comment at the top of the spec).
+Every other spec, including `donor-flow.spec.ts`, runs with no wallet
+extension. CI only runs `e2e/donor-flow.spec.ts`.
+
+**Screenshot baselines.** No spec uses `toHaveScreenshot` yet, so there are no
+baselines to refresh today. If you add one, generate or refresh its baseline
+with `npx playwright test <spec> --update-snapshots`, then review the changed
+images in your diff before committing them.
+
+Troubleshooting:
+
+- Port 3001 already in use: stop the other dev server, or start it yourself
+  and set `E2E_BASE_URL=http://localhost:3001` so Playwright reuses it.
+- Tests that read NGOs fail or time out: the backend at `NEXT_PUBLIC_API_URL`
+  is not running or has no verified NGO.
+- "Executable doesn't exist": run `npx playwright install chromium` again.
+- A failure you cannot explain from the log: rerun that spec with `--trace on`
+  and open it with `npx playwright show-trace <trace.zip>`.
+
 ### Writing a new test
 
 - **Unit/component tests** are colocated with the code they cover, e.g.
