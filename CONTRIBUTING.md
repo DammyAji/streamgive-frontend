@@ -7,6 +7,9 @@ decisions) see the
 
 ## Local setup
 
+Use Node 24 (the version CI runs). `.nvmrc` pins it and `package.json`
+`engines` enforces it, so `nvm use` picks the right version.
+
 ```bash
 cp .env.example .env          # fill in any blank vars — see ENVIRONMENT.md
 npm install
