@@ -1,0 +1,20 @@
+{
+  "name": "streamgive-frontend",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:4-24-bookworm",
+  "containerEnv": {
+    "NEXT_PUBLIC_API_URL": "http://localhost:3000",
+    "NEXT_PUBLIC_APP_URL": "http://localhost:3001",
+    "NEXT_PUBLIC_SOROBAN_RPC_URL": "https://soroban-testnet.stellar.org",
+    "NEXT_PUBLIC_NETWORK_PASSPHRASE": "Test SDF Network ; September 2015",
+    "NEXT_PUBLIC_DONATION_VAULT_CONTRACT_ID": "CDLKBGX3VTFZZBVBNQYHF47PQO6I7UTBYVVQE3BPJDONF6G4U33Z7VLH",
+    "NEXT_PUBLIC_NGO_REGISTRY_CONTRACT_ID": "CCPWQBI7FV2CZ7EECOVZ5XHOHK5S7CS6XTBDWPWHBEOKPTIASNGOBQFH",
+    "NEXT_PUBLIC_USDC_ISSUER": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+  },
+  "forwardPorts": [3001],
+  "postCreateCommand": "npm install",
+  "customizations": {
+    "vscode": {
+      "extensions": ["dbaeumer.vscode-eslint", "esbenp.prettier-vscode"]
+    }
+  }
+}

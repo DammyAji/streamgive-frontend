@@ -18,6 +18,14 @@ The app expects a running `streamgive-backend` instance at
 the Soroban RPC URL are pre-filled with testnet values so you can start
 without deploying contracts yourself.
 
+### Dev container
+
+If you use Docker, open the repo in VS Code and choose "Reopen in Container"
+(or run `devcontainer up`). The `.devcontainer` setup provides Node 24, the
+testnet `NEXT_PUBLIC_*` values from `.env.example`, forwards port 3001 and runs
+`npm install`. Then `npm run dev` starts the app. You still need a
+`streamgive-backend` instance reachable at `NEXT_PUBLIC_API_URL`.
+
 ## Testing
 
 ```bash
