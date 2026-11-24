@@ -19,5 +19,18 @@ export default defineConfig({
         reuseExistingServer: true,
         timeout: 60_000,
       },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  projects: [
+    // Every spec that needs no wallet extension; this is what CI runs.
+    {
+      name: 'chromium',
+      testIgnore: ['**/wallet-flow.spec.ts'],
+      use: { ...devices['Desktop Chrome'] },
+    },
+    // Needs a local Freighter setup (see the spec), so it is not run in CI.
+    {
+      name: 'wallet',
+      testMatch: ['**/wallet-flow.spec.ts'],
+      use: { ...devices['Desktop Chrome'] },
+    },
+  ],
 });

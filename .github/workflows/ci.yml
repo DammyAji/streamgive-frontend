@@ -41,5 +41,5 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
-      - name: E2E tests (navigation only — no wallet extension in CI)
-        run: npx playwright test e2e/donor-flow.spec.ts
+      - name: E2E tests (every spec except the wallet one — no wallet extension in CI)
+        run: npx playwright test --project=chromium
