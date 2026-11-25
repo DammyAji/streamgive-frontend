@@ -103,6 +103,16 @@ describe('NgoProfilePage', () => {
     expect(screen.queryByRole('link', { name: /javascript/ })).not.toBeInTheDocument();
   });
 
+  it('renders a Report this NGO mailto link prefilled with the NGO id', async () => {
+    await renderProfile(NGO);
+
+    const reportLink = screen.getByRole('link', { name: /report this ngo/i });
+    const href = reportLink.getAttribute('href') ?? '';
+    expect(href).toMatch(/^mailto:report@streamgive\.org\?/);
+    expect(decodeURIComponent(href)).toContain(NGO.id);
+    expect(decodeURIComponent(href)).toContain(NGO.name);
+  });
+
   it('shows "Verified since" with no expiry when verificationExpiresAt is omitted', async () => {
     const verifiedAt = '2026-02-15T12:00:00.000Z';
     await renderProfile({ ...NGO, verifiedAt, verificationExpiresAt: null });

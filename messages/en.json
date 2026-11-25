@@ -280,7 +280,10 @@
     "noStreams": "No streams yet.",
     "ratePerSecond": "{rate} / second",
     "active": "Active",
-    "cancelled": "Cancelled"
+    "cancelled": "Cancelled",
+    "reportNgo": "Report this NGO",
+    "reportSubject": "Report NGO: {name} ({id})",
+    "reportBody": "Please describe why you are reporting this NGO.\n\nNGO ID: {id}\nNGO Name: {name}\n"
   },
   "CreateStreamForm": {
     "widgetNotConfigured": "Widget not configured",

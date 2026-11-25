@@ -6,6 +6,7 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { CopyLinkButton } from '@/components/common/CopyLinkButton';
 import { DonateQrCode } from '@/components/ngos/DonateQrCode';
 import { getNgo, getStreams, type NgoProfile, type Stream } from '@/lib/api';
+import { REPORT_CONTACT_EMAIL } from '@/lib/config';
 import { formatAmount, formatDate, tokenSymbol, truncateAddress } from '@/lib/format';
 import { explorerUrl } from '@/lib/stellar';
 
@@ -100,6 +101,9 @@ export default async function NgoProfilePage({ params }: Props) {
   }
 
   const websiteUrl = ngo.website ? safeWebsiteUrl(ngo.website) : null;
+  const reportSubject = t('reportSubject', { name: ngo.name, id: ngo.id });
+  const reportBody = t('reportBody', { name: ngo.name, id: ngo.id });
+  const reportHref = `mailto:${REPORT_CONTACT_EMAIL}?subject=${encodeURIComponent(reportSubject)}&body=${encodeURIComponent(reportBody)}`;
 
   // The API has no "most recent first" ordering guarantee, so that's
   // enforced here rather than trusting response order. The limit still
@@ -242,6 +246,15 @@ export default async function NgoProfilePage({ params }: Props) {
 
           <DonateQrCode ngoId={ngo.id} ngoName={ngo.name} />
         </div>
+
+        <p className="mt-4 text-sm">
+          <a
+            href={reportHref}
+            className="text-gray-600 underline hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
+          >
+            {t('reportNgo')}
+          </a>
+        </p>
 
         <h2 className="mt-12 text-lg font-semibold">{t('recentStreams')}</h2>
         {recentStreams.length === 0 ? (
