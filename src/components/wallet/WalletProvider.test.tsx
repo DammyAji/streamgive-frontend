@@ -7,13 +7,14 @@ import { ToastProvider } from '@/components/toast/ToastProvider';
 import { renderWithIntl } from '@/test/renderWithIntl';
 
 import { ConnectWalletButton } from './ConnectWalletButton';
-import { useWallet, WalletProvider } from './WalletProvider';
+import { useWallet, WALLET_SESSION_STORAGE_KEY, WalletProvider } from './WalletProvider';
 
 const TEST_ADDRESS = 'G' + 'A'.repeat(55);
 // Matches src/lib/stellar.ts's NETWORK_PASSPHRASE default, so tests don't
 // have to set NEXT_PUBLIC_NETWORK_PASSPHRASE just to assert against it.
 const NETWORK_PASSPHRASE = 'Test SDF Network ; September 2015';
 
+const mockInit = vi.fn();
 const mockGetAddress = vi.fn();
 const mockAuthModal = vi.fn();
 const mockSignMessage = vi.fn();
@@ -31,7 +32,7 @@ const mockGetSupportedWallets = vi.fn().mockResolvedValue([
 
 vi.mock('@creit.tech/stellar-wallets-kit/sdk', () => ({
   StellarWalletsKit: {
-    init: vi.fn(),
+    init: (...args: unknown[]) => mockInit(...args),
     getAddress: (...args: unknown[]) => mockGetAddress(...args),
     authModal: (...args: unknown[]) => mockAuthModal(...args),
     getNetwork: (...args: unknown[]) => mockGetNetwork(...args),
@@ -127,6 +128,8 @@ function renderSignMessageProbe(message = 'hello') {
 
 describe('wallet connect flow', () => {
   beforeEach(() => {
+    localStorage.clear();
+    mockInit.mockReset();
     mockGetAddress.mockReset();
     mockAuthModal.mockReset();
     mockGetNetwork.mockReset().mockResolvedValue({
@@ -135,9 +138,18 @@ describe('wallet connect flow', () => {
     });
   });
 
+  it('does not initialize the wallet kit on mount when no session is saved', async () => {
+    renderButton();
+
+    expect(await screen.findByRole('button', { name: /connect wallet/i })).toBeInTheDocument();
+    expect(mockInit).not.toHaveBeenCalled();
+    expect(mockGetAddress).not.toHaveBeenCalled();
+  });
+
   it('shows "Connect Wallet" when no session is restored', async () => {
     // getAddress() rejecting is the documented "nothing connected yet"
     // case — not an error, the common cold-start state.
+    localStorage.setItem(WALLET_SESSION_STORAGE_KEY, '1');
     mockGetAddress.mockRejectedValue(new Error('not connected'));
 
     renderButton();
@@ -146,6 +158,7 @@ describe('wallet connect flow', () => {
   });
 
   it('leaves address null and connecting false when session restore rejects, without an error toast', async () => {
+    localStorage.setItem(WALLET_SESSION_STORAGE_KEY, '1');
     mockGetAddress.mockRejectedValue(new Error('not connected'));
 
     renderStateProbe();
@@ -159,9 +172,11 @@ describe('wallet connect flow', () => {
 
     expect(screen.getByTestId('address')).toHaveTextContent('null');
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(localStorage.getItem(WALLET_SESSION_STORAGE_KEY)).toBeNull();
   });
 
   it('restores an already-authorized session on mount', async () => {
+    localStorage.setItem(WALLET_SESSION_STORAGE_KEY, '1');
     mockGetAddress.mockResolvedValue({ address: TEST_ADDRESS });
 
     renderButton();
@@ -172,6 +187,7 @@ describe('wallet connect flow', () => {
   });
 
   it('flags a wrong network on a session restored on mount', async () => {
+    localStorage.setItem(WALLET_SESSION_STORAGE_KEY, '1');
     mockGetAddress.mockResolvedValue({ address: TEST_ADDRESS });
     mockGetNetwork.mockResolvedValueOnce({
       network: 'PUBLIC',
@@ -184,6 +200,7 @@ describe('wallet connect flow', () => {
   });
 
   it('re-checks the network when the window regains focus', async () => {
+    localStorage.setItem(WALLET_SESSION_STORAGE_KEY, '1');
     mockGetAddress.mockResolvedValue({ address: TEST_ADDRESS });
 
     // Finish session restoration and install the focus listener before
@@ -260,6 +277,7 @@ describe('wallet connect flow', () => {
   });
 
   it('forgets the address on disconnect without an SDK call', async () => {
+    localStorage.setItem(WALLET_SESSION_STORAGE_KEY, '1');
     mockGetAddress.mockResolvedValue({ address: TEST_ADDRESS });
 
     const user = userEvent.setup();
@@ -275,6 +293,7 @@ describe('wallet connect flow', () => {
     await user.click(screen.getByRole('button'));
 
     expect(await screen.findByRole('button', { name: /connect wallet/i })).toBeInTheDocument();
+    expect(localStorage.getItem(WALLET_SESSION_STORAGE_KEY)).toBeNull();
   });
 });
 
@@ -372,6 +391,8 @@ describe('networkMismatch', () => {
 
 describe('signMessage (SEP-53)', () => {
   beforeEach(() => {
+    localStorage.clear();
+    localStorage.setItem(WALLET_SESSION_STORAGE_KEY, '1');
     mockGetAddress.mockReset();
     mockSignMessage.mockReset();
     // Every test here needs an already-connected wallet — signMessage

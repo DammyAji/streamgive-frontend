@@ -1,7 +1,5 @@
 'use client';
 
-import { defaultModules } from '@creit.tech/stellar-wallets-kit/modules/utils';
-import { StellarWalletsKit } from '@creit.tech/stellar-wallets-kit/sdk';
 import type { Networks } from '@creit.tech/stellar-wallets-kit/types';
 import {
   createContext,
@@ -58,12 +56,38 @@ type WalletContextValue = {
   networkMismatch: boolean;
 };
 
+type WalletKit = typeof import('@creit.tech/stellar-wallets-kit/sdk')['StellarWalletsKit'];
+
+export const WALLET_SESSION_STORAGE_KEY = 'streamgive.wallet.connected';
+
+function hasSavedWalletSession(): boolean {
+  try {
+    return typeof window !== 'undefined' && window.localStorage.getItem(WALLET_SESSION_STORAGE_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function setSavedWalletSession(connected: boolean): void {
+  try {
+    if (typeof window === 'undefined') return;
+    if (connected) {
+      window.localStorage.setItem(WALLET_SESSION_STORAGE_KEY, '1');
+    } else {
+      window.localStorage.removeItem(WALLET_SESSION_STORAGE_KEY);
+    }
+  } catch {
+    // Ignore storage errors (e.g. private browsing / restricted storage).
+  }
+}
+
 /** Not every wallet supports SEP-43's getNetwork() (e.g. some wallets that
  * only ever operate on one fixed network don't implement it) — treat that
  * as "can't tell", not as a mismatch. */
-async function walletNetworkMismatch(): Promise<boolean> {
+async function walletNetworkMismatch(kit?: WalletKit): Promise<boolean> {
   try {
-    const { networkPassphrase } = await StellarWalletsKit.getNetwork();
+    const walletKit = kit ?? (await getWalletKit());
+    const { networkPassphrase } = await walletKit.getNetwork();
     return networkPassphrase !== NETWORK_PASSPHRASE;
   } catch {
     return false;
@@ -91,22 +115,33 @@ function isUserDismissal(err: unknown): boolean {
 
 const WalletContext = createContext<WalletContextValue | null>(null);
 
-let kitInitialized = false;
+let kitPromise: Promise<WalletKit> | null = null;
 
-/** Idempotent — safe to call from every consumer's effect. Only ever runs
- * client-side (this whole file is 'use client', and callers only reach it
- * from useEffect), since the kit touches the DOM/window. */
-function ensureKitInitialized(): void {
-  if (kitInitialized) return;
-  // Without an explicit network the kit defaults to mainnet, and the
-  // wallet then refuses every request with "the requester expects you to
-  // sign this message on Main Net". The Networks enum's values are the
-  // passphrases themselves, so the env var drives this directly.
-  StellarWalletsKit.init({
-    modules: defaultModules(),
-    network: NETWORK_PASSPHRASE as Networks,
-  });
-  kitInitialized = true;
+/** Lazily imports and initializes the wallet kit once per page. Only runs
+ * client-side when restoring a saved session or on user-initiated actions. */
+async function getWalletKit(): Promise<WalletKit> {
+  if (!kitPromise) {
+    kitPromise = Promise.all([
+      import('@creit.tech/stellar-wallets-kit/sdk'),
+      import('@creit.tech/stellar-wallets-kit/modules/utils'),
+    ])
+      .then(([{ StellarWalletsKit }, { defaultModules }]) => {
+        // Without an explicit network the kit defaults to mainnet, and the
+        // wallet then refuses every request with "the requester expects you to
+        // sign this message on Main Net". The Networks enum's values are the
+        // passphrases themselves, so the env var drives this directly.
+        StellarWalletsKit.init({
+          modules: defaultModules(),
+          network: NETWORK_PASSPHRASE as Networks,
+        });
+        return StellarWalletsKit;
+      })
+      .catch((err) => {
+        kitPromise = null;
+        throw err;
+      });
+  }
+  return kitPromise;
 }
 
 /**
@@ -149,7 +184,7 @@ function ensureKitInitialized(): void {
  */
 export function WalletProvider({ children }: { children: ReactNode }) {
   const [address, setAddress] = useState<string | null>(null);
-  const [connecting, setConnecting] = useState(true);
+  const [connecting, setConnecting] = useState(() => hasSavedWalletSession());
   const [networkMismatch, setNetworkMismatch] = useState(false);
   const [noWalletOptions, setNoWalletOptions] = useState<WalletOption[] | null>(null);
   const { showToast } = useToast();
@@ -157,22 +192,27 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const dismissNoWalletPrompt = useCallback(() => setNoWalletOptions(null), []);
 
   useEffect(() => {
-    ensureKitInitialized();
+    if (!hasSavedWalletSession()) {
+      return;
+    }
 
     // Restores an already-authorized session on page load/refresh.
     // getAddress() throws when nothing's connected yet — that's the
     // expected, common case, not an error worth surfacing.
     let cancelled = false;
-    StellarWalletsKit.getAddress()
-      .then(async ({ address }) => {
+    getWalletKit()
+      .then(async (kit) => {
+        const { address } = await kit.getAddress();
         if (cancelled) return;
         setAddress(address);
         // connect() isn't involved on a restore, so the network has to be
         // checked here or the "Wrong network" hint is lost on every reload.
-        const mismatch = await walletNetworkMismatch();
+        const mismatch = await walletNetworkMismatch(kit);
         if (!cancelled) setNetworkMismatch(mismatch);
       })
-      .catch(() => {})
+      .catch(() => {
+        setSavedWalletSession(false);
+      })
       .finally(() => {
         if (!cancelled) setConnecting(false);
       });
@@ -202,9 +242,9 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   }, [address]);
 
   const connect = useCallback(async () => {
-    ensureKitInitialized();
     setConnecting(true);
     try {
+      const kit = await getWalletKit();
       // Checked up front, rather than letting the kit open its own
       // wallet-selection modal: with nothing installed, that modal has
       // nothing to list and no next step. getSupportedWallets() reports
@@ -215,7 +255,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       // renamed method here falls back to opening the modal as before,
       // rather than failing closed.
       const supported = await (
-        StellarWalletsKit as unknown as {
+        kit as unknown as {
           getSupportedWallets: () => Promise<SupportedWalletInfo[]>;
         }
       )
@@ -227,9 +267,10 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       }
       setNoWalletOptions(null);
 
-      const { address } = await StellarWalletsKit.authModal();
+      const { address } = await kit.authModal();
+      setSavedWalletSession(true);
       setAddress(address);
-      setNetworkMismatch(await walletNetworkMismatch());
+      setNetworkMismatch(await walletNetworkMismatch(kit));
     } catch (err) {
       if (!isUserDismissal(err)) {
         showToast(
@@ -246,6 +287,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     // The kit has no app-callable disconnect as of writing — the wallet
     // extension itself stays authorized. This just forgets the address on
     // our side, which is what "disconnect" means for most dApps anyway.
+    setSavedWalletSession(false);
     setAddress(null);
     setNetworkMismatch(false);
     setNoWalletOptions(null);
@@ -257,7 +299,8 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       if (!signerAddress) {
         throw new Error('No wallet connected');
       }
-      return StellarWalletsKit.signTransaction(xdr, {
+      const kit = await getWalletKit();
+      return kit.signTransaction(xdr, {
         networkPassphrase: opts?.networkPassphrase ?? NETWORK_PASSPHRASE,
         address: signerAddress,
       });
@@ -270,11 +313,12 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       if (!address) {
         throw new Error('No wallet connected');
       }
+      const kit = await getWalletKit();
       // Encoding of `signedMessage` (base64 vs hex) isn't precisely
       // documented — base64 is assumed here for consistency with
       // signTransaction's signedTxXdr. If backend verification ever fails
       // against a real wallet, check this first.
-      const { signedMessage } = await StellarWalletsKit.signMessage(message, {
+      const { signedMessage } = await kit.signMessage(message, {
         address,
         networkPassphrase: NETWORK_PASSPHRASE,
       });
