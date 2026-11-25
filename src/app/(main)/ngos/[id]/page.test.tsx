@@ -1,6 +1,7 @@
 import { screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { formatDate } from '@/lib/format';
 import { getNgo, type NgoProfile, type Stream } from '@/lib/api';
 import { renderWithIntl } from '@/test/renderWithIntl';
 
@@ -110,5 +111,43 @@ describe('NgoProfilePage', () => {
     expect(href).toMatch(/^mailto:report@streamgive\.org\?/);
     expect(decodeURIComponent(href)).toContain(NGO.id);
     expect(decodeURIComponent(href)).toContain(NGO.name);
+  });
+
+  it('shows "Verified since" with no expiry when verificationExpiresAt is omitted', async () => {
+    const verifiedAt = '2026-02-15T12:00:00.000Z';
+    await renderProfile({ ...NGO, verifiedAt, verificationExpiresAt: null });
+
+    const expectedSince = formatDate(verifiedAt, 'en', { dateStyle: 'medium' });
+    expect(screen.getByText(`Verified since ${expectedSince}`)).toBeInTheDocument();
+    expect(screen.queryByText(/Verification expires/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Verification expired/i)).not.toBeInTheDocument();
+  });
+
+  it('shows future "Verification expires" without expiring-soon warning when expiry is far away', async () => {
+    const verifiedAt = '2026-01-10T00:00:00.000Z';
+    const futureExpiry = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString();
+    await renderProfile({ ...NGO, verifiedAt, verificationExpiresAt: futureExpiry });
+
+    const expectedSince = formatDate(verifiedAt, 'en', { dateStyle: 'medium' });
+    const expectedExpiry = formatDate(futureExpiry, 'en', { dateStyle: 'medium' });
+    expect(screen.getByText(`Verified since ${expectedSince}`)).toBeInTheDocument();
+    expect(screen.getByText(`Verification expires ${expectedExpiry}`)).toBeInTheDocument();
+    expect(screen.queryByText(/expires soon/i)).not.toBeInTheDocument();
+  });
+
+  it('shows an expiring-soon warning when verification expires within 30 days', async () => {
+    const soonExpiry = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString();
+    await renderProfile({ ...NGO, verificationExpiresAt: soonExpiry });
+
+    const expectedExpiry = formatDate(soonExpiry, 'en', { dateStyle: 'medium' });
+    expect(screen.getByText(`Verification expires soon (${expectedExpiry})`)).toBeInTheDocument();
+  });
+
+  it('shows expired status when verificationExpiresAt is in the past', async () => {
+    const pastExpiry = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString();
+    await renderProfile({ ...NGO, verificationExpiresAt: pastExpiry });
+
+    const expectedExpiry = formatDate(pastExpiry, 'en', { dateStyle: 'medium' });
+    expect(screen.getByText(`Verification expired ${expectedExpiry}`)).toBeInTheDocument();
   });
 });

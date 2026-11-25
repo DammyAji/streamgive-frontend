@@ -4,6 +4,12 @@
     "heroSubtext": "StreamGive te permite apoyar a ONGs verificadas en Stellar con donaciones continuas y cancelables en cualquier momento: transparentes, en la cadena y al instante.",
     "exploreNgos": "Explorar ONGs"
   },
+  "OfflineBanner": {
+    "offline": "Estás sin conexión. Comprueba tu conexión: las donaciones y las acciones de la billetera se reanudarán cuando vuelvas a estar en línea."
+  },
+  "BackendStatusNotice": {
+    "unavailable": "El servicio no está disponible temporalmente. No es un problema de tu conexión; inténtalo de nuevo en unos momentos."
+  },
   "HowItWorks": {
     "heading": "Cómo funciona",
     "steps": [
@@ -101,6 +107,7 @@
     "oldest": "Más antiguos",
     "largestCommitted": "Mayor importe comprometido",
     "endingSoonest": "Próximos a terminar",
+    "endingSoon": "Pronto terminará",
     "searchLabel": "Buscar por ID de flujo en cadena",
     "searchPlaceholder": "Buscar por ID de flujo…",
     "scheduled": "Programado",
@@ -260,6 +267,10 @@
     "loadError": "No se pudo cargar el perfil de esta ONG. Comprueba tu conexión e inténtalo de nuevo.",
     "retry": "Reintentar",
     "verified": "Verificada",
+    "verifiedSince": "Verificada desde el {date}",
+    "verificationExpires": "La verificación vence el {date}",
+    "verificationExpiringSoon": "La verificación vence pronto ({date})",
+    "verificationExpired": "La verificación venció el {date}",
     "totalCommitted": "Total comprometido",
     "totalWithdrawn": "Total retirado",
     "activeStreams": "{count, plural, one {Flujo activo} other {Flujos activos}}",

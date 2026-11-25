@@ -7,6 +7,9 @@ decisions) see the
 
 ## Local setup
 
+Use Node 24 (the version CI runs). `.nvmrc` pins it and `package.json`
+`engines` enforces it, so `nvm use` picks the right version.
+
 ```bash
 cp .env.example .env          # fill in any blank vars — see ENVIRONMENT.md
 npm install
@@ -285,3 +288,16 @@ interactive UI, check the following before opening a PR so we don't regress it:
 - **Interactive elements are real elements.** Use `<button>`/`<a>` rather
   than a `<div onClick>` — this gets keyboard support, focus, and role
   semantics for free instead of having to re-implement them.
+
+## Triaging the npm audit workflow
+
+The `npm audit` workflow runs weekly and whenever `package.json` or
+`package-lock.json` changes. It fails on high or critical advisories in
+production dependencies.
+
+1. Open the failed run and read which package and advisory it names.
+2. Run `npm audit --omit=dev` locally to see the dependency path.
+3. Try `npm update <package>` for a fixed version in range, or bump the parent
+   dependency that pulls it in.
+4. If no fix exists yet, open an issue linking the advisory and note why it is
+   not reachable from this app.

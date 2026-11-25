@@ -132,7 +132,6 @@ export function ThemeToggle() {
     setMounted(true);
     // High contrast: an explicit choice wins, otherwise follow prefers-contrast.
     const explicit = document.documentElement.getAttribute('data-contrast');
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setContrast(
       explicit
         ? explicit === 'on'

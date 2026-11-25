@@ -2,9 +2,13 @@
   "name": "@streamgive/frontend",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=24 <25"
+  },
   "scripts": {
     "dev": "next dev -p 3001",
     "build": "next build",
+    "bundle:check": "node scripts/check-bundle-size.mjs",
     "start": "next start -p 3001",
     "lint": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --fix",
@@ -13,7 +17,9 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "test:a11y": "playwright test e2e/accessibility.spec.ts"
+    "test:a11y": "playwright test e2e/accessibility.spec.ts",
+    "test:visual": "playwright test --project=visual",
+    "test:visual:update": "playwright test --project=visual --update-snapshots"
   },
   "dependencies": {
     "@creit.tech/stellar-wallets-kit": "^2.6.0",
