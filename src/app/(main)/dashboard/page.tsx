@@ -5,12 +5,14 @@ import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useId, useState } from 'react';
 
 import { ConnectWalletPrompt } from '@/components/common/ConnectWalletPrompt';
+import { EndingSoonBadge } from '@/components/dashboard/EndingSoonBadge';
 import { StreamControls } from '@/components/dashboard/StreamControls';
 import { StreamDetailsModal } from '@/components/streams/StreamDetailsModal';
 import { useWallet } from '@/components/wallet/WalletProvider';
 import { getStreams, type Stream } from '@/lib/api';
 import { buildDonationHistoryCsv } from '@/lib/csv';
 import { formatTokenAmount, formatTokenTotals } from '@/lib/format';
+import { isEndingSoon } from '@/lib/streamEnd';
 import { useLatestRequest } from '@/lib/useLatestRequest';
 import { useSharedClock } from '@/lib/useSharedClock';
 
@@ -480,6 +482,7 @@ export default function DashboardPage() {
                       >
                         {stream.ngo.name}
                       </Link>
+                      {isEndingSoon(stream) && <EndingSoonBadge />}
                       {stream.memo?.trim() && (
                         <p
                           title={stream.memo}

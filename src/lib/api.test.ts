@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { ApiError, getNgos, getStreams } from './api';
+import { ApiError, getBackendReady, getNgos, getStreams } from './api';
 import { getNgo, getWithdrawals, lookupNgoByAddress, submitNgoApplication } from './api';
 
 // A hung/unreachable backend must surface as a rejected promise rather than
@@ -375,5 +375,75 @@ describe('submitNgoApplication', () => {
     );
 
     await expect(submitNgoApplication(input)).rejects.toThrow('fetch failed');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getBackendReady
+// ---------------------------------------------------------------------------
+
+describe('getBackendReady', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('calls the root-level readiness endpoint, not a /v1 route', async () => {
+    const fetchMock = vi.fn<typeof fetch>(() =>
+      Promise.resolve(jsonResponse({ status: 'ok', lag: 0 })),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(getBackendReady()).resolves.toBe(true);
+    expect(fetchMock.mock.calls[0][0]).toMatch(/\/health\/ready$/);
+    expect(fetchMock.mock.calls[0][0]).not.toContain('/v1/');
+  });
+
+  it('forwards a caller-supplied signal so polling can cancel the request', async () => {
+    const controller = new AbortController();
+    const fetchMock = vi.fn<typeof fetch>(() =>
+      Promise.resolve(jsonResponse({ status: 'ok' })),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    await getBackendReady(controller.signal);
+
+    const init = fetchMock.mock.calls[0][1] as RequestInit;
+    const combined = init.signal as AbortSignal;
+    expect(combined).toBeInstanceOf(AbortSignal);
+    expect(combined.aborted).toBe(false);
+    controller.abort();
+    expect(combined.aborted).toBe(true);
+  });
+
+  it('returns false when the backend reports itself unavailable with 503', async () => {
+    vi.stubGlobal('fetch', vi.fn<typeof fetch>(() =>
+      Promise.resolve(jsonResponse({ status: 'error', reason: 'service_unavailable' }, 503)),
+    ));
+
+    await expect(getBackendReady()).resolves.toBe(false);
+  });
+
+  it('returns false for a 200 response that does not report status ok', async () => {
+    vi.stubGlobal('fetch', vi.fn<typeof fetch>(() =>
+      Promise.resolve(jsonResponse({ status: 'degraded' })),
+    ));
+
+    await expect(getBackendReady()).resolves.toBe(false);
+  });
+
+  it('returns false for a non-JSON response', async () => {
+    vi.stubGlobal('fetch', vi.fn<typeof fetch>(() =>
+      Promise.resolve(new Response('not json', { status: 200 })),
+    ));
+
+    await expect(getBackendReady()).resolves.toBe(false);
+  });
+
+  it('returns false when fetch itself fails', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => {
+      throw networkFailure;
+    }));
+
+    await expect(getBackendReady()).resolves.toBe(false);
   });
 });

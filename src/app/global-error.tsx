@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useErrorReporting } from '@/lib/errorReporter';
 
 import './globals.css';
 
@@ -15,9 +15,7 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  useEffect(() => {
-    console.error(error);
-  }, [error]);
+  useErrorReporting(error, 'global');
 
   return (
     <html lang="en">

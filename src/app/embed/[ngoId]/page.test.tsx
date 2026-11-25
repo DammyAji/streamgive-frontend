@@ -30,7 +30,8 @@ const baseNgo: NgoProfile = {
 async function renderPage(ngo: NgoProfile) {
   vi.mocked(getNgo).mockResolvedValue(ngo);
   const params = Promise.resolve({ ngoId: ngo.id });
-  const jsx = await EmbedDonatePage({ params });
+  const searchParams = Promise.resolve<{ locale?: string | string[] }>({});
+  const jsx = await EmbedDonatePage({ params, searchParams });
   render(jsx as React.ReactElement);
 }
 
