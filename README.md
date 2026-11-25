@@ -108,6 +108,24 @@ Because authorization is entirely signature-based, only the wallet holding
 the private key for `ADMIN_ADDRESS` can act on `/platform-admin` — there is
 no separate admin account or password to provision or rotate.
 
+## Browser support
+
+| Browser | Status |
+|---|---|
+| Chromium-based (Chrome, Edge, Brave), desktop | Tested. CI runs the e2e navigation test on Playwright's bundled Chromium. |
+| Firefox, desktop | Not covered by automated tests. Expected to work with a compatible wallet extension. |
+| Safari, desktop and iOS | Not covered by automated tests. |
+
+Known limitations:
+
+- Extension wallets such as Freighter need a desktop browser that supports
+  extensions. Most mobile browsers do not.
+- On mobile, use a wallet that connects over WalletConnect, or the wallet's
+  in-app browser. Behaviour varies by wallet.
+- Hardware wallets (Ledger, Trezor) use WebUSB, WebHID or Bluetooth through
+  the wallet kit, which are mainly available in Chromium-based browsers.
+- CI has no wallet extension, so wallet flows are checked by hand.
+
 ## Troubleshooting
 
 **Port already in use**
