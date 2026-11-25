@@ -884,5 +884,88 @@ describe('DashboardPage', () => {
       expect(screen.getByText(/Balance 1 /)).toBeInTheDocument();
     });
   });
+
+  describe('ended streams grouping (#458)', () => {
+    const ongoingStream = makeStream({
+      id: 'ongoing-1',
+      onChainId: '10',
+      status: 'ACTIVE',
+      balance: '5000',
+      ngo: { id: 'ngo-ongoing', name: 'Ongoing NGO', ownerAddress: 'G1' },
+    });
+    const drainedStream = makeStream({
+      id: 'drained-1',
+      onChainId: '11',
+      status: 'ACTIVE',
+      balance: '0',
+      ngo: { id: 'ngo-drained', name: 'Drained NGO', ownerAddress: 'G2' },
+    });
+    const cancelledStream = makeStream({
+      id: 'cancelled-1',
+      onChainId: '12',
+      status: 'CANCELLED',
+      balance: '2000',
+      ngo: { id: 'ngo-cancelled', name: 'Cancelled NGO', ownerAddress: 'G3' },
+    });
+
+    it('groups drained and cancelled streams under collapsible Ended section with accurate count', async () => {
+      mockConnectedWallet();
+      vi.spyOn(ApiMod, 'getStreams').mockResolvedValue([
+        ongoingStream,
+        drainedStream,
+        cancelledStream,
+      ]);
+
+      renderWithIntl(<DashboardPage />);
+
+      // Ongoing stream appears in the main active list
+      expect(await screen.findByText('Ongoing NGO')).toBeInTheDocument();
+      const activeList = screen.getByTestId('active-streams-list');
+      expect(activeList).toContainElement(screen.getByText('Ongoing NGO'));
+
+      // Switch to All tab to see all streams
+      const user = userEvent.setup();
+      await user.click(screen.getByRole('tab', { name: 'All' }));
+
+      // Ended section shows count 2 (1 drained + 1 cancelled)
+      const endedSection = screen.getByTestId('ended-streams-section');
+      expect(endedSection).toBeInTheDocument();
+      expect(endedSection).toHaveTextContent(/Ended streams \(2\)/);
+
+      // Section is collapsed by default on All tab
+      expect(endedSection).not.toHaveAttribute('open');
+
+      // Both ended streams are inside the ended section
+      const endedList = screen.getByTestId('ended-streams-list');
+      expect(endedList).toContainElement(screen.getByText('Drained NGO'));
+      expect(endedList).toContainElement(screen.getByText('Cancelled NGO'));
+
+      // Expanding the section
+      await user.click(screen.getByText(/Ended streams \(2\)/));
+      expect(endedSection).toHaveAttribute('open');
+    });
+
+    it('automatically opens the Ended section when selecting the Cancelled tab', async () => {
+      mockConnectedWallet();
+      vi.spyOn(ApiMod, 'getStreams').mockResolvedValue([
+        ongoingStream,
+        cancelledStream,
+      ]);
+
+      const user = userEvent.setup();
+      renderWithIntl(<DashboardPage />);
+
+      await screen.findByText('Ongoing NGO');
+
+      // Select Cancelled tab
+      await user.click(screen.getByRole('tab', { name: 'Cancelled' }));
+
+      // Ended section should be present with open attribute
+      const endedSection = screen.getByTestId('ended-streams-section');
+      expect(endedSection).toHaveAttribute('open');
+      expect(screen.getByText('Cancelled NGO')).toBeInTheDocument();
+      expect(screen.queryByText('Ongoing NGO')).not.toBeInTheDocument();
+    });
+  });
 });
 

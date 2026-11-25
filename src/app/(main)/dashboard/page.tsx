@@ -120,6 +120,7 @@ export default function DashboardPage() {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOrder, setSortOrder] = useState<SortOrder>('newest');
+  const [isEndedOpen, setIsEndedOpen] = useState(false);
 
   const { streams, loading, loadError, refresh } = useDonorStreams(address, (data) =>
     setFilter(initialStreamFilter(data)),
@@ -150,10 +151,20 @@ export default function DashboardPage() {
   const visibleStreams = sortedStreams.slice(0, visibleCount);
   const hasMore = visibleCount < sortedStreams.length;
 
+  const isEndedStream = (s: Stream) =>
+    s.status === 'CANCELLED' || BigInt(s.balance) <= 0n;
+
+  const endedStreamsCount = sortedStreams.filter(isEndedStream).length;
+  const visibleActiveStreams = visibleStreams.filter((s) => !isEndedStream(s));
+  const visibleEndedStreams = visibleStreams.filter(isEndedStream);
+
   // A new filter, search, or sort order starts back at the first page
   function handleFilterChange(next: StreamFilter): void {
     setFilter(next);
     setVisibleCount(PAGE_SIZE);
+    if (next === 'CANCELLED') {
+      setIsEndedOpen(true);
+    }
   }
 
   function handleSearchChange(value: string): void {
@@ -309,63 +320,64 @@ export default function DashboardPage() {
               <p className="mt-8 text-gray-600 dark:text-gray-400">
                 {trimmedSearchQuery
                   ? t('noSearchResults', { query: trimmedSearchQuery })
-                  : t(filter === 'ACTIVE' ? 'noActiveStreams' : filter === 'CANCELLED' ? 'noCancelledStreams' : 'noStreams')}
+                  : t(
+                      filter === 'ACTIVE'
+                        ? 'noActiveStreams'
+                        : filter === 'CANCELLED'
+                          ? 'noCancelledStreams'
+                          : 'noStreams',
+                    )}
               </p>
             ) : (
-              <ul className="mt-6 space-y-4">
-                {visibleStreams.map((stream) => (
-                  <li
-                    key={stream.id}
-                    className="stream-card rounded-lg border border-gray-200 p-6 dark:border-gray-800"
+              <div className="mt-6 space-y-8">
+                {visibleActiveStreams.length > 0 && (
+                  <ul className="space-y-4" data-testid="active-streams-list">
+                    {visibleActiveStreams.map((stream) => (
+                      <StreamCard
+                        key={stream.id}
+                        stream={stream}
+                        t={t}
+                        remainingTime={remainingTime}
+                        onViewDetails={setDetailsStream}
+                        onChanged={refresh}
+                      />
+                    ))}
+                  </ul>
+                )}
+
+                {visibleActiveStreams.length === 0 &&
+                  visibleEndedStreams.length > 0 &&
+                  filter === 'ACTIVE' && (
+                    <p className="text-gray-600 dark:text-gray-400">
+                      {t('noActiveStreams')}
+                    </p>
+                  )}
+
+                {visibleEndedStreams.length > 0 && (
+                  <details
+                    open={isEndedOpen}
+                    onToggle={(e) => setIsEndedOpen(e.currentTarget.open)}
+                    className="rounded-lg border border-gray-200 p-4 dark:border-gray-800"
+                    data-testid="ended-streams-section"
                   >
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <Link
-                        href={`/ngos/${stream.ngo.id}`}
-                        className="font-semibold hover:underline"
-                      >
-                        {stream.ngo.name}
-                      </Link>
-                      {isEndingSoon(stream) && <EndingSoonBadge />}
-                      {stream.memo?.trim() && (
-                        <p
-                          title={stream.memo}
-                          className="mt-1 line-clamp-2 max-w-md break-words text-sm text-gray-700 dark:text-gray-300"
-                        >
-                          {stream.memo}
-                        </p>
-                      )}
-                      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                        {stream.status === 'PAUSED' ? (
-                          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900 dark:text-amber-300">
-                            {t('paused')}
-                          </span>
-                        ) : (
-                          t(stream.status === 'ACTIVE' ? 'active' : 'cancelled')
-                        )}{' '}
-                        · {t('balance')}{' '}
-                        <LiveBalance stream={stream} /> · {t('withdrawn')} {formatTokenAmount(stream.withdrawn, stream.tokenAddress)}
-                        {stream.status === 'ACTIVE' && remainingTime(stream)
-                          ? ` · ${remainingTime(stream)}`
-                          : ''}
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap items-center justify-end gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setDetailsStream(stream)}
-                        className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
-                      >
-                        {t('viewDetails')}
-                      </button>
-                      {(stream.status === 'ACTIVE' || stream.status === 'PAUSED') && (
-                        <StreamControls stream={stream} onChanged={refresh} />
-                      )}
-                    </div>
-                  </div>
-                  </li>
-                ))}
-              </ul>
+                    <summary className="cursor-pointer font-medium text-gray-700 select-none dark:text-gray-300">
+                      {t('endedStreamsSection', { count: endedStreamsCount })}
+                    </summary>
+                    <ul className="mt-4 space-y-4" data-testid="ended-streams-list">
+                      {visibleEndedStreams.map((stream) => (
+                        <StreamCard
+                          key={stream.id}
+                          stream={stream}
+                          t={t}
+                          remainingTime={remainingTime}
+                          onViewDetails={setDetailsStream}
+                          onChanged={refresh}
+                        />
+                      ))}
+                    </ul>
+                  </details>
+                )}
+              </div>
             )}
 
             {hasMore && (
@@ -387,5 +399,73 @@ export default function DashboardPage() {
         <StreamDetailsModal stream={detailsStream} onClose={() => setDetailsStream(null)} />
       )}
     </>
+  );
+}
+
+function StreamCard({
+  stream,
+  t,
+  remainingTime,
+  onViewDetails,
+  onChanged,
+}: {
+  stream: Stream;
+  t: ReturnType<typeof useTranslations<'Dashboard'>>;
+  remainingTime: (stream: Stream) => string;
+  onViewDetails: (stream: Stream) => void;
+  onChanged: () => void;
+}) {
+  return (
+    <li
+      key={stream.id}
+      className="stream-card rounded-lg border border-gray-200 p-6 dark:border-gray-800"
+    >
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <Link
+            href={`/ngos/${stream.ngo.id}`}
+            className="font-semibold hover:underline"
+          >
+            {stream.ngo.name}
+          </Link>
+          {isEndingSoon(stream) && <EndingSoonBadge />}
+          {stream.memo?.trim() && (
+            <p
+              title={stream.memo}
+              className="mt-1 line-clamp-2 max-w-md break-words text-sm text-gray-700 dark:text-gray-300"
+            >
+              {stream.memo}
+            </p>
+          )}
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            {stream.status === 'PAUSED' ? (
+              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900 dark:text-amber-300">
+                {t('paused')}
+              </span>
+            ) : (
+              t(stream.status === 'ACTIVE' ? 'active' : 'cancelled')
+            )}{' '}
+            · {t('balance')}{' '}
+            <LiveBalance stream={stream} /> · {t('withdrawn')}{' '}
+            {formatTokenAmount(stream.withdrawn, stream.tokenAddress)}
+            {stream.status === 'ACTIVE' && remainingTime(stream)
+              ? ` · ${remainingTime(stream)}`
+              : ''}
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <button
+            type="button"
+            onClick={() => onViewDetails(stream)}
+            className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
+          >
+            {t('viewDetails')}
+          </button>
+          {(stream.status === 'ACTIVE' || stream.status === 'PAUSED') && (
+            <StreamControls stream={stream} onChanged={onChanged} />
+          )}
+        </div>
+      </div>
+    </li>
   );
 }

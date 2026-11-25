@@ -126,7 +126,8 @@
     "hoursRemaining": "~{count, plural, one {# hour} other {# hours}} remaining",
     "daysRemaining": "~{count, plural, one {# day} other {# days}} remaining",
     "viewDetails": "View details",
-    "loadMore": "Load more"
+    "loadMore": "Load more",
+    "endedStreamsSection": "Ended streams ({count})"
   },
   "StreamControls": {
     "topUpSuccess": "Stream topped up — may take a few seconds to show below.",
@@ -300,6 +301,13 @@
     "invalidTokenAddress": "Must be a Stellar contract address starting with C followed by 55 uppercase letters or digits 2–7.",
     "checkingTokenDecimals": "Checking this token's decimals…",
     "tokenDecimalsError": "Couldn't read this token's decimals — it may not be a valid token contract. Streaming it is blocked until this can be confirmed.",
+    "amountMode": "Donation mode",
+    "modeTotal": "Total amount",
+    "modeMonthly": "Monthly amount",
+    "monthlyAmount": "Amount per month",
+    "numberOfMonths": "Number of months",
+    "monthUnit": "months",
+    "previewTotal": "Total deposit: {amount} over {months} months",
     "totalAmount": "Total amount",
     "setAmountTo": "Set amount to {amount}",
     "setAmountToMax": "Set amount to max",
@@ -443,6 +451,11 @@
       "recipient": "Recipient",
       "actions": "Actions"
     }
+  },
+  "Offline": {
+    "title": "You are offline",
+    "description": "It looks like you've lost your internet connection. Some features may be unavailable until you reconnect.",
+    "retry": "Try again"
   },
   "Faq": {
     "title": "Frequently asked questions",

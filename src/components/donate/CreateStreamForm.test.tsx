@@ -636,4 +636,50 @@ describe('CreateStreamForm', () => {
       expect(mockCreateStream).not.toHaveBeenCalled();
     });
   });
+
+  describe('monthly amount picker (#456)', () => {
+    it('switches to monthly mode, previews total and submits with computed rate and deposit', async () => {
+      mockCreateStream.mockResolvedValue({
+        signAndSend: vi.fn().mockResolvedValue({ result: 101n }),
+      });
+
+      const user = userEvent.setup();
+      render(<CreateStreamForm ngoAddress={NGO_ADDRESS} />);
+
+      // Switch to monthly mode
+      await user.click(screen.getByLabelText(/monthly amount/i));
+
+      expect(screen.getByLabelText(/amount per month/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/number of months/i)).toBeInTheDocument();
+
+      // Enter 50 per month for 3 months
+      await user.type(screen.getByLabelText(/amount per month/i), '50');
+      const monthsInput = screen.getByLabelText(/number of months/i);
+      await user.clear(monthsInput);
+      await user.type(monthsInput, '3');
+
+      // Verify preview
+      expect(screen.getByTestId('monthly-preview')).toHaveTextContent(/150/);
+
+      // Verify submit button is enabled
+      const submit = screen.getByRole('button', { name: /review & sign/i });
+      expect(submit).not.toBeDisabled();
+
+      await user.click(submit);
+      await user.click(await screen.findByRole('button', { name: /confirm & sign/i }));
+
+      await screen.findByText(/stream started/i);
+
+      // Total deposit = 50 * 3 = 150 XLM = 1_500_000_000 raw units
+      // Duration = 3 * 30 * 86400 = 7_776_000 seconds
+      // Rate = 1_500_000_000 / 7_776_000 = 192 raw units/sec
+      expect(mockCreateStream).toHaveBeenCalledWith({
+        donor: DONOR_ADDRESS,
+        ngo: NGO_ADDRESS,
+        token: NATIVE_TOKEN_ADDRESS,
+        deposit: 1_500_000_000n,
+        rate: 1_500_000_000n / 7_776_000n,
+      });
+    });
+  });
 });
