@@ -4,6 +4,12 @@
     "heroSubtext": "StreamGive vous permet de soutenir des ONG vérifiées sur Stellar grâce à des dons continus, annulables à tout moment — transparents, on-chain et instantanés.",
     "exploreNgos": "Découvrir les ONG"
   },
+  "OfflineBanner": {
+    "offline": "Vous êtes hors ligne. Vérifiez votre connexion — les dons et les actions du portefeuille reprendront lorsque vous serez de nouveau en ligne."
+  },
+  "BackendStatusNotice": {
+    "unavailable": "Le service est temporairement indisponible. Ce n'est pas un problème de connexion — veuillez réessayer dans un instant."
+  },
   "HowItWorks": {
     "heading": "Comment ça fonctionne",
     "steps": [
@@ -41,6 +47,7 @@
     "tagline": "StreamGive — open source, construit sur Stellar.",
     "github": "GitHub",
     "docs": "Documentation",
+    "faq": "FAQ",
     "contact": "Contact",
     "privacy": "Confidentialité",
     "terms": "Conditions d'utilisation",
@@ -100,6 +107,7 @@
     "oldest": "Les plus anciens",
     "largestCommitted": "Montant engagé le plus élevé",
     "endingSoonest": "Se terminant le plus tôt",
+    "endingSoon": "Se termine bientôt",
     "searchLabel": "Rechercher par identifiant de flux on-chain",
     "searchPlaceholder": "Rechercher par identifiant de flux…",
     "scheduled": "Planifié",
@@ -383,5 +391,124 @@
     "notVerified": "{ngoName} n’est pas encore vérifiée et ne peut pas recevoir de flux pour le moment.",
     "heading": "Donnez à {ngoName}",
     "poweredBy": "Propulsé par StreamGive"
+  },
+  "Faq": {
+    "title": "Questions fréquentes",
+    "description": "Réponses sur les flux, les frais, l'annulation, les remboursements et les portefeuilles.",
+    "items": [
+      {
+        "question": "Qu'est-ce qu'un flux ?",
+        "answer": "Un flux est un don récurrent. Vous déposez des fonds une seule fois ; ils sont mis à disposition de l'ONG seconde par seconde au rythme choisi, au lieu d'un versement unique."
+      },
+      {
+        "question": "À qui puis-je faire un don ?",
+        "answer": "Aux ONG vérifiées. Une ONG est vérifiée lorsque l'administrateur de la plateforme approuve sa candidature dans le registre on-chain. Le simple fait de postuler ne rend pas une ONG vérifiée."
+      },
+      {
+        "question": "Quels portefeuilles puis-je utiliser ?",
+        "answer": "Freighter ou tout autre portefeuille pris en charge par Stellar Wallets Kit. Aucun compte à créer. Votre portefeuille doit être sur le réseau attendu par l'application, sinon un avertissement s'affiche jusqu'au changement de réseau."
+      },
+      {
+        "question": "Combien cela coûte-t-il ?",
+        "answer": "Chaque transaction signée, comme la création, le rechargement ou l'annulation d'un flux, paie des frais réseau Stellar. L'application affiche une estimation avant confirmation. C'est une estimation, pas la garantie des frais finaux."
+      },
+      {
+        "question": "Puis-je annuler un flux ?",
+        "answer": "Oui, à tout moment depuis votre tableau de bord. L'annulation est totale : le montant déjà accumulé est versé à l'ONG et le solde non dépensé vous est remboursé."
+      },
+      {
+        "question": "Puis-je obtenir un remboursement ?",
+        "answer": "Les fonds déjà accumulés par l'ONG ne peuvent pas être récupérés. La partie de votre dépôt qui n'a pas encore été versée reste dans le flux et vous est restituée lors de l'annulation."
+      },
+      {
+        "question": "Puis-je ajouter des fonds ou modifier le rythme ?",
+        "answer": "Oui. Le rechargement ajoute des fonds à un flux actif. Modifier le rythme permet de choisir une nouvelle durée ; le solde restant est réparti sur cette durée."
+      },
+      {
+        "question": "Comment postuler en tant qu'ONG ?",
+        "answer": "Connectez votre portefeuille et soumettez le formulaire de la page Candidature. Vous vous enregistrez d'abord on-chain avec votre propre portefeuille. Une fois la candidature approuvée par l'administrateur, votre ONG apparaît dans l'explorateur."
+      }
+    ]
+  },
+  "NgoAdmin": {
+    "withdrawals": {
+      "title": "Retraits",
+      "loading": "Chargement des retraits...",
+      "empty": "Aucun retrait pour le moment.",
+      "error": "Impossible de charger les retraits.",
+      "status": "Statut",
+      "amount": "Montant",
+      "date": "Date",
+      "actions": "Actions"
+    },
+    "embed": {
+      "title": "Intégrez votre flux",
+      "description": "Utilisez le code ci-dessous pour intégrer votre flux de dons.",
+      "instructions": "Copiez et collez ce code sur votre site web.",
+      "copy": "Copier le code",
+      "copied": "Code copié !",
+      "copyError": "Impossible de copier le code."
+    },
+    "streams": {
+      "title": "Vos flux",
+      "loading": "Chargement des flux...",
+      "empty": "Vous n'avez pas encore créé de flux.",
+      "error": "Impossible de charger les flux.",
+      "status": "Statut",
+      "amount": "Montant",
+      "recipient": "Bénéficiaire",
+      "actions": "Actions"
+    }
+  },
+  "PlatformAdmin": {
+    "title": "Administration de la plateforme",
+    "description": "Gérez les candidatures et les approbations d'ONG.",
+    "applications": "Candidatures",
+    "pending": "En attente",
+    "approved": "Approuvées",
+    "rejected": "Rejetées",
+    "revoked": "Révoquées",
+    "approve": "Approuver",
+    "reject": "Rejeter",
+    "revoke": "Révoquer",
+    "refresh": "Actualiser",
+    "loading": "Chargement des candidatures...",
+    "empty": "Aucune candidature trouvée.",
+    "emptyPending": "Aucune candidature en attente.",
+    "error": "Impossible de charger les candidatures.",
+    "applicant": "Candidat",
+    "organization": "Organisation",
+    "email": "E-mail",
+    "submittedAt": "Soumise le",
+    "status": "Statut",
+    "actions": "Actions",
+    "approveDialog": {
+      "title": "Approuver la candidature",
+      "description": "Voulez-vous vraiment approuver cette candidature ?",
+      "confirm": "Approuver la candidature",
+      "cancel": "Annuler"
+    },
+    "rejectDialog": {
+      "title": "Rejeter la candidature",
+      "description": "Voulez-vous vraiment rejeter cette candidature ?",
+      "confirm": "Rejeter la candidature",
+      "cancel": "Annuler"
+    },
+    "revokeDialog": {
+      "title": "Révoquer l'approbation",
+      "description": "Voulez-vous vraiment révoquer l'approbation de cette organisation ?",
+      "confirm": "Révoquer l'approbation",
+      "cancel": "Annuler"
+    },
+    "success": {
+      "approved": "Candidature approuvée avec succès.",
+      "rejected": "Candidature rejetée avec succès.",
+      "revoked": "Approbation révoquée avec succès."
+    },
+    "failure": {
+      "approve": "Impossible d'approuver la candidature.",
+      "reject": "Impossible de rejeter la candidature.",
+      "revoke": "Impossible de révoquer l'approbation."
+    }
   }
 }
