@@ -30,6 +30,8 @@ export type Ngo = {
   ownerAddress: string;
   name: string;
   verified: boolean;
+  verifiedAt?: string | null;
+  verificationExpiresAt?: string | null;
   createdAt: string;
   updatedAt: string;
 };
