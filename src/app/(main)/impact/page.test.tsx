@@ -5,40 +5,6 @@ import ImpactPage from './page';
 import { loadPlatformImpact, type PlatformImpact } from '@/lib/impact';
 import { renderWithIntl } from '@/test/renderWithIntl';
 
-export interface LegalDocumentResult {
-  content: string; // or structured sections / component renderer
-  locale: string;
-  isFallback: boolean;
-}
-
-export async function getLegalDocument(
-  docType: "privacy" | "terms",
-  locale: string,
-  defaultLocale = "en",
-): Promise<LegalDocumentResult> {
-  if (locale === defaultLocale) {
-    return {
-      content: await loadLocaleDocument(docType, defaultLocale),
-      locale: defaultLocale,
-      isFallback: false,
-    };
-  }
-
-  const localized = await tryLoadLocaleDocument(docType, locale);
-  if (localized) {
-    return {
-      content: localized,
-      locale,
-      isFallback: false,
-    };
-  }
-
-  return {
-    content: await loadLocaleDocument(docType, defaultLocale),
-    locale: defaultLocale,
-    isFallback: true,
-  };
-}
 // The impact page renders <Header />, which reads the wallet context; give it
 // a signed-out static value the same way Header.test.tsx does.
 vi.mock('@/components/wallet/WalletProvider', () => ({
@@ -250,5 +216,43 @@ describe('ImpactPage hidden tab polling (issue #438)', () => {
 
     await vi.advanceTimersByTimeAsync(POLL_INTERVAL_MS);
     expect(loadPlatformImpact).toHaveBeenCalledTimes(3);
+  });
+});
+
+describe('ImpactPage last updated time (issue #448)', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.mocked(loadPlatformImpact).mockReset();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  it('shows a relative time that keeps counting up', async () => {
+    vi.mocked(loadPlatformImpact).mockResolvedValue(IMPACT);
+
+    renderWithIntl(<ImpactPage />);
+    await vi.waitFor(() => expect(screen.getByText(/^Updated /)).toBeInTheDocument());
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(12_000);
+    });
+
+    expect(screen.getByText('Updated 12 seconds ago')).toBeInTheDocument();
+  });
+
+  it('localises the relative time', async () => {
+    vi.mocked(loadPlatformImpact).mockResolvedValue(IMPACT);
+
+    renderWithIntl(<ImpactPage />, 'es');
+    await vi.waitFor(() => expect(screen.getByText(/^Actualizado /)).toBeInTheDocument());
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(12_000);
+    });
+
+    expect(screen.getByText('Actualizado hace 12 segundos')).toBeInTheDocument();
   });
 });

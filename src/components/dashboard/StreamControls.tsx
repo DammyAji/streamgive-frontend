@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useToast } from '@/components/toast/ToastProvider';
 import { useWallet } from '@/components/wallet/WalletProvider';
 import { getStreams, type Stream } from '@/lib/api';
+import { STREAM_PAUSE_SUPPORTED } from '@/lib/config';
 import { describeContractError } from '@/lib/contractTypes';
 import { useDonationVaultClient } from '@/lib/donationVaultClient';
 import { describeAmountError, formatDate, formatEstimatedFee, formatRate, parseAmount, TOKEN_DECIMALS } from '@/lib/format';
@@ -30,16 +31,17 @@ export function computeModifyRate(balance: string, durationSeconds: number): big
 // an interval — a confirmed on-chain action can lag a few seconds before
 // onChanged()'s refresh actually reflects it. Said explicitly in the
 // success toast so it doesn't look like nothing happened.
-type Mode = 'idle' | 'toppingUp' | 'modifying' | 'confirmingCancel';
+type Mode = 'idle' | 'toppingUp' | 'modifying' | 'confirmingCancel' | 'confirmingPause';
 
 // Which on-chain action is in flight, so the idle buttons can say what's
 // actually happening instead of reading "Cancelling…" for everything.
-type PendingAction = 'topUp' | 'modifyRate' | 'cancel' | null;
+type PendingAction = 'topUp' | 'modifyRate' | 'cancel' | 'pause' | null;
 
 export function StreamControls({
   stream,
   onChanged,
   onOptimisticUpdate,
+  pauseSupported = STREAM_PAUSE_SUPPORTED,
 }: {
   stream: Stream;
   onChanged: () => void;
@@ -52,6 +54,8 @@ export function StreamControls({
    * out to have been wrong.
    */
   onOptimisticUpdate?: (patch: Partial<Stream>) => void;
+  /** Whether the API reports a paused status, which gates the Pause button. */
+  pauseSupported?: boolean;
 }) {
   const locale = useLocale();
   const t = useTranslations('StreamControls');
@@ -65,6 +69,7 @@ export function StreamControls({
   const [modifyStartedAt, setModifyStartedAt] = useState(0);
   const [topUpAmount, setTopUpAmount] = useState('');
   const [estimatedFee, setEstimatedFee] = useState<string | null>(null);
+  const paused = stream.status === 'PAUSED';
 
   // Each mode replaces the whole subtree below, so switching modes unmounts
   // whatever had focus — without this, focus falls back to <body>. Each
@@ -76,6 +81,8 @@ export function StreamControls({
   const topUpButtonRef = useRef<HTMLButtonElement>(null);
   const modifyButtonRef = useRef<HTMLButtonElement>(null);
   const cancelButtonRef = useRef<HTMLButtonElement>(null);
+  const pauseButtonRef = useRef<HTMLButtonElement>(null);
+  const confirmPauseButtonRef = useRef<HTMLButtonElement>(null);
   const topUpAmountInputRef = useRef<HTMLInputElement>(null);
   const modifyDurationSelectRef = useRef<HTMLSelectElement>(null);
   const confirmCancelButtonRef = useRef<HTMLButtonElement>(null);
@@ -92,6 +99,8 @@ export function StreamControls({
       modifyDurationSelectRef.current?.focus();
     } else if (mode === 'confirmingCancel') {
       confirmCancelButtonRef.current?.focus();
+    } else if (mode === 'confirmingPause') {
+      confirmPauseButtonRef.current?.focus();
     } else {
       const trigger =
         previousMode === 'toppingUp'
@@ -100,7 +109,9 @@ export function StreamControls({
             ? modifyButtonRef.current
             : previousMode === 'confirmingCancel'
               ? cancelButtonRef.current
-              : null;
+              : previousMode === 'confirmingPause'
+                ? pauseButtonRef.current
+                : null;
       // A trigger that just submitted its action is disabled (pending !==
       // null) by the time this runs — a disabled button can't take focus,
       // so the live region announcing that progress is the next best thing.
@@ -156,6 +167,28 @@ export function StreamControls({
       const sent = await tx.signAndSend();
       showToast('success', t('cancelSuccess'), txToastAction(sent, tx));
       onOptimisticUpdate?.({ status: 'CANCELLED' });
+      onChanged();
+    } catch (err) {
+      showToast('error', describeContractError(err));
+    } finally {
+      setPending(null);
+      setEstimatedFee(null);
+    }
+  }
+
+  async function handlePauseResume(): Promise<void> {
+    if (!address || !client) return;
+    const resuming = paused;
+    setMode('idle');
+    setPending('pause');
+    try {
+      const tx = resuming
+        ? await client.resume_stream({ stream_id: BigInt(stream.onChainId) })
+        : await client.pause_stream({ stream_id: BigInt(stream.onChainId) });
+      setEstimatedFee(formatEstimatedFee(tx.built?.fee));
+      const sent = await tx.signAndSend();
+      showToast('success', t(resuming ? 'resumeSuccess' : 'pauseSuccess'), txToastAction(sent, tx));
+      onOptimisticUpdate?.({ status: resuming ? 'ACTIVE' : 'PAUSED' });
       onChanged();
     } catch (err) {
       showToast('error', describeContractError(err));
@@ -287,6 +320,31 @@ export function StreamControls({
     );
   }
 
+  if (mode === 'confirmingPause') {
+    return (
+      <div className="flex flex-wrap items-center justify-end gap-2">
+        <span className="text-sm text-gray-600 dark:text-gray-400">
+          {t(paused ? 'resumePrompt' : 'pausePrompt')}
+        </span>
+        <button
+          ref={confirmPauseButtonRef}
+          type="button"
+          onClick={() => void handlePauseResume()}
+          className="rounded-md bg-black px-3 py-1 text-sm font-medium text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 dark:bg-white dark:text-black dark:focus-visible:ring-teal-400"
+        >
+          {t(paused ? 'yesResume' : 'yesPause')}
+        </button>
+        <button
+          type="button"
+          onClick={() => setMode('idle')}
+          className="rounded-md border border-gray-300 px-3 py-1 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 dark:border-gray-700 dark:focus-visible:ring-teal-400"
+        >
+          {t('neverMind')}
+        </button>
+      </div>
+    );
+  }
+
   if (mode === 'modifying') {
     const previewRate = computeModifyRate(stream.balance, durationSeconds);
     const previewEndDate = new Date(modifyStartedAt + durationSeconds * 1000);
@@ -351,27 +409,42 @@ export function StreamControls({
       {pending !== null && estimatedFee && (
         <span className="text-xs text-gray-500 dark:text-gray-400">{t('fee', { fee: estimatedFee })}</span>
       )}
-      <button
-        ref={topUpButtonRef}
-        type="button"
-        onClick={() => setMode('toppingUp')}
-        disabled={pending !== null || !ready}
-        className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 disabled:opacity-50 dark:focus-visible:ring-teal-400"
-      >
-        {t(pending === 'topUp' ? 'toppingUp' : 'topUp')}
-      </button>
-      <button
-        ref={modifyButtonRef}
-        type="button"
-        onClick={() => {
-          setModifyStartedAt(Date.now());
-          setMode('modifying');
-        }}
-        disabled={pending !== null || !ready}
-        className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 disabled:opacity-50 dark:focus-visible:ring-teal-400"
-      >
-        {t(pending === 'modifyRate' ? 'updating' : 'modifyRate')}
-      </button>
+      {!paused && (
+        <>
+          <button
+            ref={topUpButtonRef}
+            type="button"
+            onClick={() => setMode('toppingUp')}
+            disabled={pending !== null || !ready}
+            className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 disabled:opacity-50 dark:focus-visible:ring-teal-400"
+          >
+            {t(pending === 'topUp' ? 'toppingUp' : 'topUp')}
+          </button>
+          <button
+            ref={modifyButtonRef}
+            type="button"
+            onClick={() => {
+              setModifyStartedAt(Date.now());
+              setMode('modifying');
+            }}
+            disabled={pending !== null || !ready}
+            className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 disabled:opacity-50 dark:focus-visible:ring-teal-400"
+          >
+            {t(pending === 'modifyRate' ? 'updating' : 'modifyRate')}
+          </button>
+        </>
+      )}
+      {(paused || pauseSupported) && (
+        <button
+          ref={pauseButtonRef}
+          type="button"
+          onClick={() => setMode('confirmingPause')}
+          disabled={pending !== null || !ready}
+          className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 disabled:opacity-50 dark:focus-visible:ring-teal-400"
+        >
+          {t(pending === 'pause' ? (paused ? 'resuming' : 'pausing') : paused ? 'resume' : 'pause')}
+        </button>
+      )}
       <button
         ref={cancelButtonRef}
         type="button"

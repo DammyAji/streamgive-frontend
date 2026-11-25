@@ -1,6 +1,11 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useWallet } from '@/components/wallet/WalletProvider';
+
+const WALLET_TROUBLESHOOTING_URL =
+  'https://github.com/StreamGive/streamgive-frontend/blob/main/docs/WALLET_TROUBLESHOOTING.md';
 
 /**
  * The "please connect your wallet" card shown in place of a protected
@@ -15,6 +20,7 @@ export function ConnectWalletPrompt({
   message: string;
   className?: string;
 }) {
+  const t = useTranslations('ConnectWalletPrompt');
   const { connect, connecting } = useWallet();
 
   // While the provider is still restoring a session the address is null
@@ -23,7 +29,7 @@ export function ConnectWalletPrompt({
   if (connecting) {
     return (
       <p role="status" className={`text-gray-500 dark:text-gray-400 ${className}`}>
-        Loading…
+        {t('loading')}
       </p>
     );
   }
@@ -38,8 +44,18 @@ export function ConnectWalletPrompt({
         onClick={() => void connect()}
         className="mt-4 rounded-md bg-black px-6 py-3 text-sm font-medium text-white hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200"
       >
-        Connect Wallet
+        {t('connectWallet')}
       </button>
+      <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
+        <a
+          href={WALLET_TROUBLESHOOTING_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline hover:text-gray-700 dark:hover:text-gray-200"
+        >
+          {t('troubleConnecting')}
+        </a>
+      </p>
     </div>
   );
 }
