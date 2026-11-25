@@ -12,6 +12,14 @@ import NgoProfileLoading from './(main)/ngos/[id]/loading';
 import PlatformAdminError from './(main)/platform-admin/error';
 import PlatformAdminLoading from './(main)/platform-admin/loading';
 
+const { mockUseErrorReporting } = vi.hoisted(() => ({
+  mockUseErrorReporting: vi.fn(),
+}));
+
+vi.mock('@/lib/errorReporter', () => ({
+  useErrorReporting: (error: Error, boundary: string) => mockUseErrorReporting(error, boundary),
+}));
+
 vi.mock('@/components/wallet/WalletProvider', () => ({
   useWallet: () => ({
     address: null,
@@ -41,6 +49,7 @@ const loadingPages = {
 describe('route error boundaries', () => {
   beforeEach(() => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
+    mockUseErrorReporting.mockClear();
   });
 
   it.each(Object.entries(errorPages))(
@@ -51,6 +60,7 @@ describe('route error boundaries', () => {
 
       render(<ErrorPage error={error} reset={reset} />);
 
+      expect(mockUseErrorReporting).toHaveBeenCalledWith(error, 'route');
       expect(screen.getByText('abc123')).toBeInTheDocument();
       fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
       expect(reset).toHaveBeenCalledTimes(1);
@@ -63,6 +73,9 @@ describe('route error boundaries', () => {
     // It renders <html>, which can't be mounted inside a test container.
     const html = renderToString(<GlobalError error={error} reset={() => {}} />);
 
+    // Effects don't run during SSR, but the boundary is still wired to the
+    // reporter: its effect will run once the fallback hydrates in the browser.
+    expect(mockUseErrorReporting).toHaveBeenCalledWith(error, 'global');
     expect(html).toContain('<html');
     expect(html).toContain('xyz789');
     expect(html).toContain('Try again');
