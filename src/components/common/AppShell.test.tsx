@@ -12,6 +12,14 @@ vi.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(),
 }));
 
+vi.mock('@/components/common/OfflineBanner', () => ({
+  OfflineBanner: () => <div>Offline banner</div>,
+}));
+
+vi.mock('@/components/common/BackendStatusNotice', () => ({
+  BackendStatusNotice: () => <div>Backend status notice</div>,
+}));
+
 vi.mock('@/components/wallet/WalletProvider', () => ({
   WalletProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
@@ -41,6 +49,34 @@ describe('AppShell', () => {
     renderWithIntl(<AppShell>{null}</AppShell>);
 
     expect(screen.queryByText(/mode: transactions use test funds/i)).not.toBeInTheDocument();
+  });
+
+  it('renders the offline banner on an ordinary route', () => {
+    mockPathname = '/ngos';
+    render(<AppShell>{null}</AppShell>);
+
+    expect(screen.getByText('Offline banner')).toBeInTheDocument();
+  });
+
+  it('hides the offline banner on an /embed route', () => {
+    mockPathname = '/embed/ngo-1';
+    render(<AppShell>{null}</AppShell>);
+
+    expect(screen.queryByText('Offline banner')).not.toBeInTheDocument();
+  });
+
+  it('renders the backend status notice on an ordinary route', () => {
+    mockPathname = '/ngos';
+    render(<AppShell>{null}</AppShell>);
+
+    expect(screen.getByText('Backend status notice')).toBeInTheDocument();
+  });
+
+  it('hides the backend status notice on an /embed route', () => {
+    mockPathname = '/embed/ngo-1';
+    render(<AppShell>{null}</AppShell>);
+
+    expect(screen.queryByText('Backend status notice')).not.toBeInTheDocument();
   });
 
   it('still provides toast context on /embed without rendering the floating toast host', () => {
