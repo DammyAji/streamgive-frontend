@@ -53,28 +53,28 @@ describe('AppShell', () => {
 
   it('renders the offline banner on an ordinary route', () => {
     mockPathname = '/ngos';
-    render(<AppShell>{null}</AppShell>);
+    renderWithIntl(<AppShell>{null}</AppShell>);
 
     expect(screen.getByText('Offline banner')).toBeInTheDocument();
   });
 
   it('hides the offline banner on an /embed route', () => {
     mockPathname = '/embed/ngo-1';
-    render(<AppShell>{null}</AppShell>);
+    renderWithIntl(<AppShell>{null}</AppShell>);
 
     expect(screen.queryByText('Offline banner')).not.toBeInTheDocument();
   });
 
   it('renders the backend status notice on an ordinary route', () => {
     mockPathname = '/ngos';
-    render(<AppShell>{null}</AppShell>);
+    renderWithIntl(<AppShell>{null}</AppShell>);
 
     expect(screen.getByText('Backend status notice')).toBeInTheDocument();
   });
 
   it('hides the backend status notice on an /embed route', () => {
     mockPathname = '/embed/ngo-1';
-    render(<AppShell>{null}</AppShell>);
+    renderWithIntl(<AppShell>{null}</AppShell>);
 
     expect(screen.queryByText('Backend status notice')).not.toBeInTheDocument();
   });
