@@ -44,6 +44,7 @@ time. None of the variables below are like that today.
 | `NEXT_PUBLIC_NGO_REGISTRY_CONTRACT_ID` | **Yes** | *(testnet value pre-filled)* | Soroban contract ID of the deployed `NgoRegistry` contract. Current value: `streamgive-contracts/deployments.json`. |
 | `NEXT_PUBLIC_USDC_ISSUER` | No | `GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5` (testnet) | Stellar account of Circle's USDC issuer. The USDC token contract address is derived from this. Switch to the mainnet issuer when moving networks. |
 | `NEXT_PUBLIC_ADMIN_ADDRESS` | No | *(unset)* | The wallet address allowed into `/platform-admin`. Purely cosmetic — it only decides whether the header shows the "Platform Admin" link; the backend independently verifies every admin request against its own `ADMIN_ADDRESS`. Leave unset and the link simply never appears. Must match the backend's `ADMIN_ADDRESS` for the link to show for the right wallet. |
+| `NEXT_PUBLIC_REPORT_EMAIL` | No | `report@streamgive.org` | Contact email address used by the "Report this NGO" `mailto:` link on NGO profile pages. |
 
 The contract IDs marked "Required" above are needed for donations and registry
 calls, although a missing ID does not itself fail the build. The API URL is

@@ -34,3 +34,10 @@ export const PLATFORM_ADMIN_ADDRESS = process.env.NEXT_PUBLIC_ADMIN_ADDRESS ?? '
  * only offered when this is on; Resume always shows for a paused stream.
  */
 export const STREAM_PAUSE_SUPPORTED = process.env.NEXT_PUBLIC_STREAM_PAUSE_SUPPORTED === 'true';
+
+/**
+ * Contact email address used in the "Report this NGO" mailto link on NGO
+ * profile pages. Defaults to `report@streamgive.org` when unset.
+ */
+export const REPORT_CONTACT_EMAIL =
+  process.env.NEXT_PUBLIC_REPORT_EMAIL?.trim() || 'report@streamgive.org';
