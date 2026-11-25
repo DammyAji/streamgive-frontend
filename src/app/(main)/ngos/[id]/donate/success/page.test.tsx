@@ -1,7 +1,8 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { getNgo, getStreams, type NgoProfile, type Stream } from '@/lib/api';
+import { renderWithIntl } from '@/test/renderWithIntl';
 
 vi.mock('@/components/wallet/WalletProvider', () => ({
   useWallet: () => ({
@@ -13,6 +14,20 @@ vi.mock('@/components/wallet/WalletProvider', () => ({
     signMessage: vi.fn(),
   }),
 }));
+
+vi.mock('next-intl/server', async () => {
+  const { createTranslator } = await vi.importActual<typeof import('next-intl')>('next-intl');
+  const { default: messages } = await import('../../../../../../../messages/en.json');
+
+  return {
+    getTranslations: async () =>
+      createTranslator({
+        locale: 'en',
+        messages: { DonateSuccess: messages.DonateSuccess },
+        namespace: 'DonateSuccess',
+      }),
+  };
+});
 
 vi.mock('next/navigation', () => ({
   usePathname: () => '/ngos/ngo-1/donate/success',
@@ -56,7 +71,7 @@ describe('DonateSuccessPage', () => {
     vi.mocked(getNgo).mockResolvedValue(NGO);
     vi.mocked(getStreams).mockResolvedValue([makeStream('42')]);
 
-    render(
+    renderWithIntl(
       await DonateSuccessPage({
         params: Promise.resolve({ id: NGO.id }),
         searchParams: Promise.resolve({ streamId: '42' }),
@@ -74,7 +89,7 @@ describe('DonateSuccessPage', () => {
     vi.mocked(getNgo).mockResolvedValue(NGO);
     vi.mocked(getStreams).mockResolvedValue([makeStream('42')]);
 
-    render(
+    renderWithIntl(
       await DonateSuccessPage({
         params: Promise.resolve({ id: NGO.id }),
         searchParams: Promise.resolve({ streamId: '999' }),
@@ -89,7 +104,7 @@ describe('DonateSuccessPage', () => {
     vi.mocked(getNgo).mockResolvedValue(NGO);
     vi.mocked(getStreams).mockResolvedValue([makeStream('42')]);
 
-    render(
+    renderWithIntl(
       await DonateSuccessPage({
         params: Promise.resolve({ id: NGO.id }),
         searchParams: Promise.resolve({}),
@@ -103,7 +118,7 @@ describe('DonateSuccessPage', () => {
     vi.mocked(getNgo).mockResolvedValue(NGO);
     vi.mocked(getStreams).mockRejectedValue(new Error('Failed to fetch streams: 503'));
 
-    render(
+    renderWithIntl(
       await DonateSuccessPage({
         params: Promise.resolve({ id: NGO.id }),
         searchParams: Promise.resolve({ streamId: '42' }),

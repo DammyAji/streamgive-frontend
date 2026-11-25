@@ -45,6 +45,7 @@
     "contact": "Contact",
     "privacy": "Privacy",
     "terms": "Terms",
+    "accessibility": "Accessibility",
     "newTabCue": "(opens in a new tab)"
   },
   "WalletButton": {
@@ -57,11 +58,23 @@
     "installWallet": "Install one of these, then try again:",
     "dismiss": "Dismiss"
   },
+  "ConnectWalletPrompt": {
+    "loading": "Loading…",
+    "connectWallet": "Connect Wallet",
+    "troubleConnecting": "Trouble connecting?"
+  },
+  "ImpactPage": {
+    "updated": "Updated {time}"
+  },
+  "RouteProgressBar": {
+    "loadingPage": "Loading page"
+  },
   "ThemeToggle": {
     "toggleTheme": "Toggle theme",
     "switchToDark": "Switch to dark mode",
     "switchToSystem": "Switch to system mode",
-    "switchToLight": "Switch to light mode"
+    "switchToLight": "Switch to light mode",
+    "highContrast": "High contrast"
   },
   "Dashboard": {
     "heading": "Your donations",
@@ -81,6 +94,7 @@
     "all": "All",
     "active": "Active",
     "cancelled": "Cancelled",
+    "paused": "Paused",
     "sortLabel": "Sort:",
     "sortBy": "Sort by",
     "newest": "Newest",
@@ -89,6 +103,8 @@
     "endingSoonest": "Ending soonest",
     "searchLabel": "Search by on-chain stream ID",
     "searchPlaceholder": "Search by stream ID…",
+    "scheduled": "Scheduled",
+    "startsOn": "Starts on {date}",
     "noSearchResults": "No streams match stream ID \"{query}\".",
     "noStreams": "No streams found.",
     "noActiveStreams": "No active streams found.",
@@ -136,7 +152,17 @@
     "modifyRate": "Modify rate",
     "updating": "Updating…",
     "cancel": "Cancel",
-    "cancelling": "Cancelling…"
+    "cancelling": "Cancelling…",
+    "pause": "Pause",
+    "pausing": "Pausing…",
+    "resume": "Resume",
+    "resuming": "Resuming…",
+    "pausePrompt": "Pause this stream? Payments stop until you resume it.",
+    "yesPause": "Yes, pause",
+    "resumePrompt": "Resume this stream?",
+    "yesResume": "Yes, resume",
+    "pauseSuccess": "Stream paused — may take a few seconds to show below.",
+    "resumeSuccess": "Stream resumed — may take a few seconds to show below."
   },
   "StreamDetails": {
     "heading": "Stream details",
@@ -144,6 +170,8 @@
     "status": "Status",
     "active": "Active",
     "cancelled": "Cancelled",
+    "paused": "Paused",
+    "memo": "Memo",
     "ngo": "NGO",
     "donor": "Donor",
     "token": "Token",
@@ -164,7 +192,7 @@
     "retry": "Retry",
     "noVerifiedNgos": "No verified NGOs yet.",
     "searchLabel": "Search NGOs by name",
-    "searchPlaceholder": "Search NGOs by name…",
+    "searchPlaceholder": "Search NGOs by name… (press /)",
     "sortLabel": "Sort NGOs",
     "newest": "Newest",
     "mostActiveStreams": "Most active streams",
@@ -175,7 +203,16 @@
     "streams": "Streams",
     "donors": "Donors",
     "viewProfile": "View profile",
-    "loadMore": "Load more"
+    "loadMore": "Load more",
+    "compare": "Compare",
+    "removeFromCompare": "Remove from compare",
+    "compareLimit": "You can compare up to three NGOs.",
+    "openCompare": "Compare {count} NGOs",
+    "compareHeading": "Compare NGOs",
+    "compareEmpty": "Select at least two NGOs to compare.",
+    "compareBack": "Back to explorer",
+    "verification": "Verification",
+    "notVerified": "Not verified"
   },
   "Apply": {
     "heading": "Apply as an NGO",
@@ -300,6 +337,19 @@
     "contractError8": "This NGO is not verified and cannot receive streams at this time.",
     "contractError9": "This token isn't accepted by the donation vault.",
     "contractError10": "Your wallet balance is too low to cover this deposit."
+  },
+  "DonateSuccess": {
+    "metaTitle": "Stream started — {ngoName}",
+    "metaTitleNotFound": "NGO not found",
+    "loadError": "Couldn't load this page. Please check your connection and try again.",
+    "retry": "Retry",
+    "streamStarted": "Stream started!",
+    "activeWithId": "Stream #{streamId} is now active, streaming to {ngoName}.",
+    "active": "Your stream to {ngoName} is now active.",
+    "shareHeading": "Know someone else who'd want to help?",
+    "shareBody": "Share {ngoName}'s profile so others can start their own stream.",
+    "viewProfile": "View {ngoName}'s profile",
+    "seeAllStreams": "See all your streams"
   },
   "Metadata": {
     "title": "StreamGive — Transparent Donations for NGOs",
@@ -430,5 +480,41 @@
         "answer": "Connect your wallet and submit the form on the Apply page. You register on-chain with your own wallet first. Once the platform admin approves your application, your NGO appears in the explorer."
       }
     ]
+  },
+  "StatsStrip": {
+    "totalCommitted": "Total committed",
+    "activeStreams": "Active streams",
+    "verifiedNgos": "Verified NGOs",
+    "loading": "Loading platform stats…"
+  },
+  "CopyAddressButton": {
+    "copy": "Copy",
+    "copied": "Copied!",
+    "failed": "Copy failed",
+    "ariaLabel": "Copy address {address}",
+    "announceCopied": "Address copied to clipboard.",
+    "announceFailed": "Could not copy the address. Copy it manually instead."
+  },
+  "CopyLinkButton": {
+    "copy": "Copy link",
+    "copied": "Link copied!",
+    "failed": "Copy failed",
+    "announceCopied": "Link copied to clipboard.",
+    "announceFailed": "Could not copy the link. Copy it from the address bar instead."
+  },
+  "DonateQrCode": {
+    "ariaLabel": "QR code linking to {ngoName}'s donate page",
+    "download": "Download"
+  },
+  "EnvironmentBanner": {
+    "message": "{network} mode: transactions use test funds, not real money."
+  },
+  "EmbedWidget": {
+    "donateTitle": "Donate to {ngoName}",
+    "notFoundTitle": "NGO not found",
+    "loadError": "Couldn't load the donation form. Please try refreshing the page.",
+    "notVerified": "{ngoName} is not yet verified and cannot receive streams at this time.",
+    "heading": "Give to {ngoName}",
+    "poweredBy": "Powered by StreamGive"
   }
 }

@@ -1,8 +1,12 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { screen, fireEvent } from '@testing-library/react';
+import { NextIntlClientProvider } from 'next-intl';
 import { renderToString } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 
 import { APP_URL } from '@/lib/config';
+import { renderWithIntl } from '@/test/renderWithIntl';
+
+import en from '../../../messages/en.json';
 
 import { DonateQrCode } from './DonateQrCode';
 
@@ -11,7 +15,7 @@ const NGO_NAME = 'Clean Water Org';
 
 describe('DonateQrCode', () => {
   it('renders a QR code and the donate URL for the given NGO', () => {
-    render(<DonateQrCode ngoId={NGO_ID} ngoName={NGO_NAME} />);
+    renderWithIntl(<DonateQrCode ngoId={NGO_ID} ngoName={NGO_NAME} />);
 
     const expectedUrl = `${window.location.origin}/ngos/${NGO_ID}/donate`;
 
@@ -22,13 +26,17 @@ describe('DonateQrCode', () => {
   });
 
   it('falls back to APP_URL for the origin when server-rendered', () => {
-    const html = renderToString(<DonateQrCode ngoId={NGO_ID} ngoName={NGO_NAME} />);
+    const html = renderToString(
+      <NextIntlClientProvider locale="en" messages={en}>
+        <DonateQrCode ngoId={NGO_ID} ngoName={NGO_NAME} />
+      </NextIntlClientProvider>,
+    );
 
     expect(html).toContain(`${APP_URL}/ngos/${NGO_ID}/donate`);
   });
 
   it('triggers a PNG download of the rendered QR code', () => {
-    render(<DonateQrCode ngoId={NGO_ID} ngoName={NGO_NAME} />);
+    renderWithIntl(<DonateQrCode ngoId={NGO_ID} ngoName={NGO_NAME} />);
 
     const toDataURL = vi
       .spyOn(HTMLCanvasElement.prototype, 'toDataURL')
@@ -45,7 +53,7 @@ describe('DonateQrCode', () => {
   });
 
   it('slugifies the NGO name for the downloaded filename', () => {
-    render(<DonateQrCode ngoId={NGO_ID} ngoName="Clean Water Org" />);
+    renderWithIntl(<DonateQrCode ngoId={NGO_ID} ngoName="Clean Water Org" />);
 
     vi.spyOn(HTMLCanvasElement.prototype, 'toDataURL').mockReturnValue(
       'data:image/png;base64,fake',
@@ -62,5 +70,16 @@ describe('DonateQrCode', () => {
     expect(downloadedFilename).toBe('clean-water-org-donate-qr.png');
 
     vi.restoreAllMocks();
+  });
+
+  it('renders the accessible name and download label in Spanish', () => {
+    renderWithIntl(<DonateQrCode ngoId={NGO_ID} ngoName={NGO_NAME} />, 'es');
+
+    expect(
+      screen.getByRole('img', {
+        name: `Código QR que enlaza a la página de donación de ${NGO_NAME}`,
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Descargar' })).toBeInTheDocument();
   });
 });

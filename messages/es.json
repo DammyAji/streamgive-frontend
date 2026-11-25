@@ -45,6 +45,7 @@
     "contact": "Contacto",
     "privacy": "Privacidad",
     "terms": "Términos",
+    "accessibility": "Accesibilidad",
     "newTabCue": "(se abre en una pestaña nueva)"
   },
   "WalletButton": {
@@ -57,11 +58,23 @@
     "installWallet": "Instala una de estas opciones y vuelve a intentarlo:",
     "dismiss": "Cerrar"
   },
+  "ConnectWalletPrompt": {
+    "loading": "Cargando…",
+    "connectWallet": "Conectar billetera",
+    "troubleConnecting": "¿Problemas para conectar?"
+  },
+  "ImpactPage": {
+    "updated": "Actualizado {time}"
+  },
+  "RouteProgressBar": {
+    "loadingPage": "Cargando página"
+  },
   "ThemeToggle": {
     "toggleTheme": "Cambiar tema",
     "switchToDark": "Cambiar al modo oscuro",
     "switchToSystem": "Usar el tema del sistema",
-    "switchToLight": "Cambiar al modo claro"
+    "switchToLight": "Cambiar al modo claro",
+    "highContrast": "Alto contraste"
   },
   "Dashboard": {
     "heading": "Tus donaciones",
@@ -81,6 +94,7 @@
     "all": "Todos",
     "active": "Activo",
     "cancelled": "Cancelado",
+    "paused": "En pausa",
     "sortLabel": "Ordenar:",
     "sortBy": "Ordenar por",
     "newest": "Más recientes",
@@ -89,6 +103,8 @@
     "endingSoonest": "Próximos a terminar",
     "searchLabel": "Buscar por ID de flujo en cadena",
     "searchPlaceholder": "Buscar por ID de flujo…",
+    "scheduled": "Programado",
+    "startsOn": "Comienza el {date}",
     "noSearchResults": "Ningún flujo coincide con el ID \"{query}\".",
     "noStreams": "No se encontraron flujos.",
     "noActiveStreams": "No se encontraron flujos activos.",
@@ -136,7 +152,17 @@
     "modifyRate": "Modificar tasa",
     "updating": "Actualizando…",
     "cancel": "Cancelar",
-    "cancelling": "Cancelando…"
+    "cancelling": "Cancelando…",
+    "pause": "Pausar",
+    "pausing": "Pausando…",
+    "resume": "Reanudar",
+    "resuming": "Reanudando…",
+    "pausePrompt": "¿Pausar este flujo? Los pagos se detienen hasta que lo reanudes.",
+    "yesPause": "Sí, pausar",
+    "resumePrompt": "¿Reanudar este flujo?",
+    "yesResume": "Sí, reanudar",
+    "pauseSuccess": "Flujo en pausa — puede tardar unos segundos en verse abajo.",
+    "resumeSuccess": "Flujo reanudado — puede tardar unos segundos en verse abajo."
   },
   "StreamDetails": {
     "heading": "Detalles del flujo",
@@ -144,6 +170,8 @@
     "status": "Estado",
     "active": "Activo",
     "cancelled": "Cancelado",
+    "paused": "En pausa",
+    "memo": "Nota",
     "ngo": "ONG",
     "donor": "Donante",
     "token": "Token",
@@ -164,7 +192,7 @@
     "retry": "Reintentar",
     "noVerifiedNgos": "Aún no hay ONG verificadas.",
     "searchLabel": "Buscar ONG por nombre",
-    "searchPlaceholder": "Buscar ONG por nombre…",
+    "searchPlaceholder": "Buscar ONG por nombre… (pulsa /)",
     "sortLabel": "Ordenar ONG",
     "newest": "Más recientes",
     "mostActiveStreams": "Más flujos activos",
@@ -175,7 +203,16 @@
     "streams": "Flujos",
     "donors": "Donantes",
     "viewProfile": "Ver perfil",
-    "loadMore": "Cargar más"
+    "loadMore": "Cargar más",
+    "compare": "Comparar",
+    "removeFromCompare": "Quitar de la comparación",
+    "compareLimit": "Puedes comparar hasta tres ONG.",
+    "openCompare": "Comparar {count} ONG",
+    "compareHeading": "Comparar ONG",
+    "compareEmpty": "Selecciona al menos dos ONG para comparar.",
+    "compareBack": "Volver al explorador",
+    "verification": "Verificación",
+    "notVerified": "No verificada"
   },
   "Apply": {
     "heading": "Postular como ONG",
@@ -300,6 +337,19 @@
     "contractError8": "Esta ONG no está verificada y no puede recibir flujos en este momento.",
     "contractError9": "El contrato de donaciones no acepta este token.",
     "contractError10": "El saldo de tu billetera es insuficiente para cubrir este depósito."
+  },
+  "DonateSuccess": {
+    "metaTitle": "Flujo iniciado — {ngoName}",
+    "metaTitleNotFound": "ONG no encontrada",
+    "loadError": "No se pudo cargar esta página. Revisa tu conexión e inténtalo de nuevo.",
+    "retry": "Reintentar",
+    "streamStarted": "¡Flujo iniciado!",
+    "activeWithId": "El flujo #{streamId} ya está activo y fluye hacia {ngoName}.",
+    "active": "Tu flujo hacia {ngoName} ya está activo.",
+    "shareHeading": "¿Conoces a alguien más que quisiera ayudar?",
+    "shareBody": "Comparte el perfil de {ngoName} para que otros inicien su propio flujo.",
+    "viewProfile": "Ver el perfil de {ngoName}",
+    "seeAllStreams": "Ver todos tus flujos"
   },
   "Metadata": {
     "title": "StreamGive — Donaciones transparentes para ONG",
@@ -430,5 +480,41 @@
         "answer": "Conecta tu billetera y envía el formulario de la página de solicitud. Primero te registras en la cadena con tu propia billetera. Cuando el administrador de la plataforma aprueba tu solicitud, tu ONG aparece en el explorador."
       }
     ]
+  },
+  "StatsStrip": {
+    "totalCommitted": "Total comprometido",
+    "activeStreams": "Flujos activos",
+    "verifiedNgos": "ONG verificadas",
+    "loading": "Cargando estadísticas de la plataforma…"
+  },
+  "CopyAddressButton": {
+    "copy": "Copiar",
+    "copied": "¡Copiado!",
+    "failed": "Error al copiar",
+    "ariaLabel": "Copiar dirección {address}",
+    "announceCopied": "Dirección copiada al portapapeles.",
+    "announceFailed": "No se pudo copiar la dirección. Cópiala manualmente."
+  },
+  "CopyLinkButton": {
+    "copy": "Copiar enlace",
+    "copied": "¡Enlace copiado!",
+    "failed": "Error al copiar",
+    "announceCopied": "Enlace copiado al portapapeles.",
+    "announceFailed": "No se pudo copiar el enlace. Cópialo desde la barra de direcciones."
+  },
+  "DonateQrCode": {
+    "ariaLabel": "Código QR que enlaza a la página de donación de {ngoName}",
+    "download": "Descargar"
+  },
+  "EnvironmentBanner": {
+    "message": "Modo {network}: las transacciones usan fondos de prueba, no dinero real."
+  },
+  "EmbedWidget": {
+    "donateTitle": "Donar a {ngoName}",
+    "notFoundTitle": "ONG no encontrada",
+    "loadError": "No se pudo cargar el formulario de donación. Actualiza la página e inténtalo de nuevo.",
+    "notVerified": "{ngoName} aún no está verificada y no puede recibir flujos por el momento.",
+    "heading": "Dona a {ngoName}",
+    "poweredBy": "Con tecnología de StreamGive"
   }
 }

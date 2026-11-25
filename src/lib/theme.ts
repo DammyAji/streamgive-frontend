@@ -6,6 +6,10 @@ export type Theme = 'light' | 'dark';
 
 export const THEME_STORAGE_KEY = 'theme';
 
+/** 'on' | 'off' override for the high contrast theme. When unset, the CSS in
+ * globals.css follows the `prefers-contrast` media query instead. */
+export const CONTRAST_STORAGE_KEY = 'contrast';
+
 /**
  * Inline script injected into <head> (see src/app/layout.tsx) and run
  * before hydration, so the correct theme class is already on <html> by the
@@ -22,7 +26,7 @@ export const THEME_STORAGE_KEY = 'theme';
  *                        whichever class matches but do NOT persist it, so
  *                        a future OS-theme change will be respected.
  */
-export const THEME_INIT_SCRIPT = `(function(){try{var s=localStorage.getItem('${THEME_STORAGE_KEY}');var d=s?s==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.classList.add(d?'dark':'light');}catch(e){}})();`;
+export const THEME_INIT_SCRIPT = `(function(){try{var s=localStorage.getItem('${THEME_STORAGE_KEY}');var d=s?s==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.classList.add(d?'dark':'light');var c=localStorage.getItem('${CONTRAST_STORAGE_KEY}');if(c==='on'||c==='off')document.documentElement.setAttribute('data-contrast',c);}catch(e){}})();`;
 
 /** Returns the stored explicit preference, or 'system' if none is set. */
 export function getStoredPreference(): ThemePreference {

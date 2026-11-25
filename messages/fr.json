@@ -44,6 +44,7 @@
     "contact": "Contact",
     "privacy": "Confidentialité",
     "terms": "Conditions d'utilisation",
+    "accessibility": "Accessibilité",
     "newTabCue": "(s'ouvre dans un nouvel onglet)"
   },
   "WalletButton": {
@@ -56,11 +57,23 @@
     "installWallet": "Installez l'un de ces portefeuilles, puis réessayez :",
     "dismiss": "Fermer"
   },
+  "ConnectWalletPrompt": {
+    "loading": "Chargement…",
+    "connectWallet": "Connecter le portefeuille",
+    "troubleConnecting": "Un problème de connexion ?"
+  },
+  "ImpactPage": {
+    "updated": "Mis à jour {time}"
+  },
+  "RouteProgressBar": {
+    "loadingPage": "Chargement de la page"
+  },
   "ThemeToggle": {
     "toggleTheme": "Changer de thème",
     "switchToDark": "Passer en mode sombre",
     "switchToSystem": "Utiliser le thème du système",
-    "switchToLight": "Passer en mode clair"
+    "switchToLight": "Passer en mode clair",
+    "highContrast": "Contraste élevé"
   },
   "Dashboard": {
     "heading": "Vos dons",
@@ -80,6 +93,7 @@
     "all": "Tous",
     "active": "Actifs",
     "cancelled": "Annulés",
+    "paused": "En pause",
     "sortLabel": "Trier :",
     "sortBy": "Trier par",
     "newest": "Les plus récents",
@@ -88,6 +102,8 @@
     "endingSoonest": "Se terminant le plus tôt",
     "searchLabel": "Rechercher par identifiant de flux on-chain",
     "searchPlaceholder": "Rechercher par identifiant de flux…",
+    "scheduled": "Planifié",
+    "startsOn": "Commence le {date}",
     "noSearchResults": "Aucun flux ne correspond à l'identifiant « {query} ».",
     "noStreams": "Aucun flux trouvé.",
     "noActiveStreams": "Aucun flux actif trouvé.",
@@ -134,7 +150,17 @@
     "modifyRate": "Modifier le débit",
     "updating": "Mise à jour…",
     "cancel": "Annuler",
-    "cancelling": "Annulation…"
+    "cancelling": "Annulation…",
+    "pause": "Mettre en pause",
+    "pausing": "Mise en pause…",
+    "resume": "Reprendre",
+    "resuming": "Reprise…",
+    "pausePrompt": "Mettre ce flux en pause ? Les paiements s'arrêtent jusqu'à la reprise.",
+    "yesPause": "Oui, mettre en pause",
+    "resumePrompt": "Reprendre ce flux ?",
+    "yesResume": "Oui, reprendre",
+    "pauseSuccess": "Flux mis en pause — l'affichage ci-dessous peut prendre quelques secondes.",
+    "resumeSuccess": "Flux repris — l'affichage ci-dessous peut prendre quelques secondes."
   },
   "StreamDetails": {
     "heading": "Détails du flux",
@@ -142,6 +168,8 @@
     "status": "Statut",
     "active": "Actif",
     "cancelled": "Annulé",
+    "paused": "En pause",
+    "memo": "Mémo",
     "ngo": "ONG",
     "donor": "Donateur",
     "token": "Jeton",
@@ -162,7 +190,7 @@
     "retry": "Réessayer",
     "noVerifiedNgos": "Aucune ONG vérifiée pour le moment.",
     "searchLabel": "Rechercher des ONG par nom",
-    "searchPlaceholder": "Rechercher une ONG…",
+    "searchPlaceholder": "Rechercher une ONG… (touche /)",
     "sortLabel": "Trier les ONG",
     "newest": "Les plus récentes",
     "mostActiveStreams": "Flux les plus actifs",
@@ -173,7 +201,16 @@
     "streams": "Flux",
     "donors": "Donateurs",
     "viewProfile": "Voir le profil",
-    "loadMore": "Afficher plus"
+    "loadMore": "Afficher plus",
+    "compare": "Comparer",
+    "removeFromCompare": "Retirer de la comparaison",
+    "compareLimit": "Vous pouvez comparer jusqu'à trois ONG.",
+    "openCompare": "Comparer {count} ONG",
+    "compareHeading": "Comparer des ONG",
+    "compareEmpty": "Sélectionnez au moins deux ONG à comparer.",
+    "compareBack": "Retour à l'explorateur",
+    "verification": "Vérification",
+    "notVerified": "Non vérifiée"
   },
   "Apply": {
     "heading": "Déposer une demande en tant qu'ONG",
@@ -292,10 +329,59 @@
     "contractError9": "Ce jeton n'est pas accepté par le coffre de dons.",
     "contractError10": "Le solde de votre portefeuille est trop faible pour couvrir ce dépôt."
   },
+  "DonateSuccess": {
+    "metaTitle": "Flux démarré — {ngoName}",
+    "metaTitleNotFound": "ONG introuvable",
+    "loadError": "Impossible de charger cette page. Vérifiez votre connexion et réessayez.",
+    "retry": "Réessayer",
+    "streamStarted": "Flux démarré !",
+    "activeWithId": "Le flux n° {streamId} est actif et alimente {ngoName}.",
+    "active": "Votre flux vers {ngoName} est maintenant actif.",
+    "shareHeading": "Vous connaissez quelqu'un d'autre qui voudrait aider ?",
+    "shareBody": "Partagez le profil de {ngoName} pour que d'autres démarrent leur propre flux.",
+    "viewProfile": "Voir le profil de {ngoName}",
+    "seeAllStreams": "Voir tous vos flux"
+  },
   "Metadata": {
     "title": "StreamGive — Des dons transparents pour les ONG",
     "description": "Soutenez des ONG de confiance et contribuez à un impact positif grâce à des dons transparents.",
     "ogTitle": "StreamGive — Donnez en toute transparence, agissez concrètement",
     "ogDescription": "Découvrez des ONG, soutenez des causes importantes et faites des dons en toute transparence."
+  },
+  "StatsStrip": {
+    "totalCommitted": "Total engagé",
+    "activeStreams": "Flux actifs",
+    "verifiedNgos": "ONG vérifiées",
+    "loading": "Chargement des statistiques de la plateforme…"
+  },
+  "CopyAddressButton": {
+    "copy": "Copier",
+    "copied": "Copié !",
+    "failed": "Échec de la copie",
+    "ariaLabel": "Copier l’adresse {address}",
+    "announceCopied": "Adresse copiée dans le presse-papiers.",
+    "announceFailed": "Impossible de copier l’adresse. Copiez-la manuellement."
+  },
+  "CopyLinkButton": {
+    "copy": "Copier le lien",
+    "copied": "Lien copié !",
+    "failed": "Échec de la copie",
+    "announceCopied": "Lien copié dans le presse-papiers.",
+    "announceFailed": "Impossible de copier le lien. Copiez-le depuis la barre d’adresse."
+  },
+  "DonateQrCode": {
+    "ariaLabel": "Code QR menant à la page de don de {ngoName}",
+    "download": "Télécharger"
+  },
+  "EnvironmentBanner": {
+    "message": "Mode {network} : les transactions utilisent des fonds de test, pas de l’argent réel."
+  },
+  "EmbedWidget": {
+    "donateTitle": "Faire un don à {ngoName}",
+    "notFoundTitle": "ONG introuvable",
+    "loadError": "Impossible de charger le formulaire de don. Veuillez actualiser la page.",
+    "notVerified": "{ngoName} n’est pas encore vérifiée et ne peut pas recevoir de flux pour le moment.",
+    "heading": "Donnez à {ngoName}",
+    "poweredBy": "Propulsé par StreamGive"
   }
 }

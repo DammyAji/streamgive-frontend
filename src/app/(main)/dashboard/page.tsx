@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useId, useState } from 'react';
 
 import { ConnectWalletPrompt } from '@/components/common/ConnectWalletPrompt';
 import { StreamControls } from '@/components/dashboard/StreamControls';
@@ -12,6 +12,7 @@ import { getStreams, type Stream } from '@/lib/api';
 import { buildDonationHistoryCsv } from '@/lib/csv';
 import { formatTokenAmount, formatTokenTotals } from '@/lib/format';
 import { useLatestRequest } from '@/lib/useLatestRequest';
+import { useSharedClock } from '@/lib/useSharedClock';
 
 // Client-side pagination over the already-fetched list — same interim
 // approach as NgoExplorer, until the backend exposes real limit/offset
@@ -24,41 +25,66 @@ const POLL_INTERVAL_MS = 30_000;
 
 function LiveBalance({ stream }: { stream: Stream }) {
   const t = useTranslations('Dashboard');
-  const [estimatedBalance, setEstimatedBalance] = useState<bigint>(BigInt(stream.balance));
-
-  useEffect(() => {
-    if (stream.status !== 'ACTIVE') {
-      return;
-    }
-
-    const balance = BigInt(stream.balance);
-    const rate = BigInt(stream.rate);
-    const updatedAt = new Date(stream.updatedAt).getTime();
-
-    const tick = () => {
-      const now = Date.now();
-      const secondsSince = BigInt(Math.floor((now - updatedAt) / 1000));
-      let current = balance - rate * secondsSince;
-      if (current < 0n) {
-        current = 0n;
-      }
-      setEstimatedBalance(current);
-    };
-
-    // Prime the clock subscription immediately instead of showing an old
-    // balance until the first interval fires after a stream update.
-    tick();
-    const interval = setInterval(tick, 1000);
-    return () => clearInterval(interval);
-  }, [stream.balance, stream.rate, stream.updatedAt, stream.status]);
+  // All rows share one clock instead of each starting its own timer.
+  const now = useSharedClock();
+  const [helpOpen, setHelpOpen] = useState(false);
+  const helpId = useId();
 
   if (stream.status !== 'ACTIVE') {
     return <>{formatTokenAmount(stream.balance, stream.tokenAddress)}</>;
   }
 
+  const startsAt = stream.startsAt ? new Date(stream.startsAt).getTime() : 0;
+  if (startsAt > 0 && now > 0 && now < startsAt) {
+    return (
+      <span className="inline-flex flex-wrap items-center gap-1">
+        <span>{formatTokenAmount(stream.balance, stream.tokenAddress)}</span>
+        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900 dark:text-amber-300">
+          {t('scheduled')}
+        </span>
+        <span className="text-xs text-gray-600 dark:text-gray-400">
+          {t('startsOn', { date: new Date(startsAt).toLocaleString() })}
+        </span>
+      </span>
+    );
+  }
+
+  let estimatedBalance = BigInt(stream.balance);
+  if (now > 0) {
+    // The live balance only begins accruing once the stream has started.
+    const updatedAt = Math.max(new Date(stream.updatedAt).getTime(), startsAt);
+    const secondsSince = BigInt(Math.max(0, Math.floor((now - updatedAt) / 1000)));
+    estimatedBalance = estimatedBalance - BigInt(stream.rate) * secondsSince;
+    if (estimatedBalance < 0n) {
+      estimatedBalance = 0n;
+    }
+  }
+
   return (
-    <span title={t('estimatedBalanceHelp')} className="border-b border-dotted border-gray-400 cursor-help">
-      {formatTokenAmount(estimatedBalance.toString(), stream.tokenAddress)} {t('estimated')}
+    <span className="inline-flex flex-wrap items-center gap-1">
+      <span>
+        {formatTokenAmount(estimatedBalance.toString(), stream.tokenAddress)} {t('estimated')}
+      </span>
+      <button
+        type="button"
+        aria-label={t('estimatedBalanceHelp')}
+        aria-expanded={helpOpen}
+        aria-controls={helpId}
+        onClick={() => setHelpOpen((open) => !open)}
+        onKeyDown={(event) => {
+          if (event.key === 'Escape') {
+            setHelpOpen(false);
+          }
+        }}
+        className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-gray-400 text-xs leading-none"
+      >
+        i
+      </button>
+      {helpOpen && (
+        <span id={helpId} role="note" className="block w-full text-xs text-gray-600 dark:text-gray-400">
+          {t('estimatedBalanceHelp')}
+        </span>
+      )}
     </span>
   );
 }
@@ -546,7 +572,7 @@ function StreamCard({
   return (
     <li
       key={stream.id}
-      className="rounded-lg border border-gray-200 p-6 dark:border-gray-800"
+      className="stream-card rounded-lg border border-gray-200 p-6 dark:border-gray-800"
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -556,8 +582,23 @@ function StreamCard({
           >
             {stream.ngo.name}
           </Link>
+          {stream.memo?.trim() && (
+            <p
+              title={stream.memo}
+              className="mt-1 line-clamp-2 max-w-md break-words text-sm text-gray-700 dark:text-gray-300"
+            >
+              {stream.memo}
+            </p>
+          )}
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            {t(stream.status === 'ACTIVE' ? 'active' : 'cancelled')} · {t('balance')}{' '}
+            {stream.status === 'PAUSED' ? (
+              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900 dark:text-amber-300">
+                {t('paused')}
+              </span>
+            ) : (
+              t(stream.status === 'ACTIVE' ? 'active' : 'cancelled')
+            )}{' '}
+            · {t('balance')}{' '}
             <LiveBalance stream={stream} /> · {t('withdrawn')}{' '}
             {formatTokenAmount(stream.withdrawn, stream.tokenAddress)}
             {stream.status === 'ACTIVE' && remainingTime(stream)
@@ -573,7 +614,7 @@ function StreamCard({
           >
             {t('viewDetails')}
           </button>
-          {stream.status === 'ACTIVE' && (
+          {(stream.status === 'ACTIVE' || stream.status === 'PAUSED') && (
             <StreamControls stream={stream} onChanged={onChanged} />
           )}
         </div>

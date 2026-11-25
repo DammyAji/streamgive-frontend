@@ -50,3 +50,87 @@ html.light {
     animation: none;
   }
 }
+
+/* Print layout (issue #452): hide navigation and actions, print black on
+ * white, and keep each stream card on a single page. */
+@media print {
+  html,
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  header,
+  footer,
+  nav,
+  button,
+  select,
+  input,
+  .route-progress-bar {
+    display: none !important;
+  }
+
+  main * {
+    background: transparent !important;
+    color: #000 !important;
+    border-color: #000 !important;
+  }
+
+  .stream-card {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}
+
+/* High contrast theme (issue #433): applied when the user turns it on in the
+ * theme toggle (data-contrast="on") or, unless they turned it off
+ * (data-contrast="off"), when the OS asks for more contrast. */
+html[data-contrast='on'] {
+  color-scheme: dark;
+}
+
+html[data-contrast='on'] body,
+html[data-contrast='on'] body * {
+  background-color: #000 !important;
+  color: #fff !important;
+  border-color: #fff !important;
+}
+
+html[data-contrast='on'] body a {
+  color: #ffff00 !important;
+  text-decoration: underline;
+}
+
+/* Focus indicators: thick, high-visibility outline that never relies on the
+ * default ring colours. */
+html[data-contrast='on'] :focus-visible {
+  outline: 3px solid #ffff00 !important;
+  outline-offset: 2px !important;
+  box-shadow: none !important;
+}
+
+@media (prefers-contrast: more) {
+  html:not([data-contrast='off']) {
+    color-scheme: dark;
+  }
+
+  html:not([data-contrast='off']) body,
+  html:not([data-contrast='off']) body * {
+    background-color: #000 !important;
+    color: #fff !important;
+    border-color: #fff !important;
+  }
+
+  html:not([data-contrast='off']) body a {
+    color: #ffff00 !important;
+    text-decoration: underline;
+  }
+
+  /* Focus indicators: thick, high-visibility outline that never relies on the
+   * default ring colours. */
+  html:not([data-contrast='off']) :focus-visible {
+    outline: 3px solid #ffff00 !important;
+    outline-offset: 2px !important;
+    box-shadow: none !important;
+  }
+}

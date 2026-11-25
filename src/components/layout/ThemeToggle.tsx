@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 
 import {
   applyThemePreference,
+  CONTRAST_STORAGE_KEY,
   getStoredPreference,
   getSystemTheme,
   type Theme,
@@ -69,6 +70,25 @@ function SystemIcon() {
   );
 }
 
+/** Half-filled circle — represents the high contrast theme. */
+function ContrastIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="h-5 w-5"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" />
+    </svg>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -100,6 +120,7 @@ export function ThemeToggle() {
   const t = useTranslations('ThemeToggle');
   const [preference, setPreference] = useState<ThemePreference>('system');
   const [mounted, setMounted] = useState(false);
+  const [contrast, setContrast] = useState(false);
 
   // On mount: read the stored preference and start listening for cross-tab
   // changes and OS theme changes.
@@ -109,6 +130,14 @@ export function ThemeToggle() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setPreference(getStoredPreference());
     setMounted(true);
+    // High contrast: an explicit choice wins, otherwise follow prefers-contrast.
+    const explicit = document.documentElement.getAttribute('data-contrast');
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setContrast(
+      explicit
+        ? explicit === 'on'
+        : (window.matchMedia?.('(prefers-contrast: more)').matches ?? false),
+    );
 
     // Cross-tab sync: another tab wrote a new value (or cleared it) in
     // localStorage — mirror it here without reloading the page.
@@ -151,6 +180,17 @@ export function ThemeToggle() {
     setPreference(next);
   }
 
+  function toggleContrast(): void {
+    const next = !contrast;
+    document.documentElement.setAttribute('data-contrast', next ? 'on' : 'off');
+    try {
+      localStorage.setItem(CONTRAST_STORAGE_KEY, next ? 'on' : 'off');
+    } catch {
+      // Storage unavailable — the choice still applies for this session.
+    }
+    setContrast(next);
+  }
+
   // Derive the visual theme for rendering (system resolves to the current OS
   // setting, used only to decide which icon to show when in system mode).
   const resolvedTheme: Theme = mounted
@@ -178,15 +218,24 @@ export function ThemeToggle() {
       )
     : t('toggleTheme');
 
+  const buttonClass =
+    'rounded-md p-2 text-gray-600 hover:bg-gray-100 hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white dark:focus-visible:ring-teal-400';
+
   return (
-    <button
-      type="button"
-      onClick={toggle}
-      aria-label={label}
-      title={label}
-      className="rounded-md p-2 text-gray-600 hover:bg-gray-100 hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white dark:focus-visible:ring-teal-400"
-    >
-      {mounted && icon}
-    </button>
+    <>
+      <button type="button" onClick={toggle} aria-label={label} title={label} className={buttonClass}>
+        {mounted && icon}
+      </button>
+      <button
+        type="button"
+        onClick={toggleContrast}
+        aria-label={t('highContrast')}
+        aria-pressed={mounted && contrast}
+        title={t('highContrast')}
+        className={buttonClass}
+      >
+        <ContrastIcon />
+      </button>
+    </>
   );
 }

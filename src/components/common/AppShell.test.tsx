@@ -1,8 +1,9 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { useEffect } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { useToast } from '@/components/toast/ToastProvider';
+import { renderWithIntl } from '@/test/renderWithIntl';
 
 let mockPathname = '/';
 
@@ -28,7 +29,7 @@ function ShowToastOnMount() {
 describe('AppShell', () => {
   it('renders the testnet banner and route-progress chrome on an ordinary route', () => {
     mockPathname = '/ngos';
-    render(<AppShell>{null}</AppShell>);
+    renderWithIntl(<AppShell>{null}</AppShell>);
 
     expect(screen.getByText(/mode: transactions use test funds/i)).toBeInTheDocument();
   });
@@ -37,14 +38,14 @@ describe('AppShell', () => {
   // testnet banner and route progress bar look broken rather than helpful.
   it('hides the testnet banner on an /embed route', () => {
     mockPathname = '/embed/ngo-1';
-    render(<AppShell>{null}</AppShell>);
+    renderWithIntl(<AppShell>{null}</AppShell>);
 
     expect(screen.queryByText(/mode: transactions use test funds/i)).not.toBeInTheDocument();
   });
 
   it('still provides toast context on /embed without rendering the floating toast host', () => {
     mockPathname = '/embed/ngo-1';
-    render(
+    renderWithIntl(
       <AppShell>
         <ShowToastOnMount />
       </AppShell>,
@@ -55,7 +56,7 @@ describe('AppShell', () => {
 
   it('renders the floating toast host on an ordinary route', () => {
     mockPathname = '/ngos';
-    render(
+    renderWithIntl(
       <AppShell>
         <ShowToastOnMount />
       </AppShell>,

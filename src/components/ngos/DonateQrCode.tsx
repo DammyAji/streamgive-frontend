@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useSyncExternalStore } from 'react';
+import { useTranslations } from 'next-intl';
 import { QRCodeCanvas } from 'qrcode.react';
 
 import { APP_URL } from '@/lib/config';
@@ -29,6 +30,7 @@ export function DonateQrCode({ ngoId, ngoName }: { ngoId: string; ngoName: strin
     () => window.location.origin,
     () => APP_URL,
   );
+  const t = useTranslations('DonateQrCode');
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const donateUrl = `${origin}/ngos/${ngoId}/donate`;
@@ -53,7 +55,7 @@ export function DonateQrCode({ ngoId, ngoName }: { ngoId: string; ngoName: strin
         marginSize={2}
         style={{ width: QR_DISPLAY_SIZE_PX, height: QR_DISPLAY_SIZE_PX }}
         role="img"
-        aria-label={`QR code linking to ${ngoName}'s donate page`}
+        aria-label={t('ariaLabel', { ngoName })}
       />
       <p className="max-w-[180px] break-all text-center text-xs text-gray-500 dark:text-gray-400">
         {donateUrl}
@@ -63,7 +65,7 @@ export function DonateQrCode({ ngoId, ngoName }: { ngoId: string; ngoName: strin
         onClick={handleDownload}
         className="text-sm font-medium text-black underline dark:text-white"
       >
-        Download
+        {t('download')}
       </button>
     </div>
   );

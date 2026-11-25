@@ -17,6 +17,7 @@ function render(ui: ReactElement) {
         messages={{
           Durations: enMessages.Durations,
           CreateStreamForm: enMessages.CreateStreamForm,
+          ConnectWalletPrompt: enMessages.ConnectWalletPrompt,
         }}
       >
         {children}

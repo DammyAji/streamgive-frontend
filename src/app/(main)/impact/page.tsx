@@ -1,9 +1,11 @@
 'use client';
 
+import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 import { formatAmount } from '@/lib/format';
 import { loadPlatformImpact, type PlatformImpact } from '@/lib/impact';
+import { useSharedClock } from '@/lib/useSharedClock';
 
 // Polling architecture (acknowledged tech debt — see README's Troubleshooting
 // section for the user-facing symptom):
@@ -18,9 +20,23 @@ import { loadPlatformImpact, type PlatformImpact } from '@/lib/impact';
 // backend gains a real aggregate/streaming endpoint.
 const POLL_INTERVAL_MS = 20_000;
 
+function formatElapsed(locale: string, elapsedMs: number): string {
+  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+  const seconds = Math.max(0, Math.round(elapsedMs / 1000));
+  if (seconds < 60) return rtf.format(-seconds, 'second');
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return rtf.format(-minutes, 'minute');
+  return rtf.format(-Math.floor(minutes / 60), 'hour');
+}
+
 export default function ImpactPage() {
+  const t = useTranslations('ImpactPage');
+  const locale = useLocale();
+  const now = useSharedClock();
   const [impact, setImpact] = useState<PlatformImpact | null>(null);
   const [loadError, setLoadError] = useState(false);
+  // Time of the last successful load, shown if a later refresh fails.
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   // Incrementing this triggers the effect to remount and retry immediately.
   const [retryCount, setRetryCount] = useState(0);
 
@@ -39,6 +55,7 @@ export default function ImpactPage() {
         .then((next) => {
           if (!cancelled) {
             setImpact(next);
+            setLastUpdated(new Date());
             setLoadError(false);
           }
         })
@@ -54,13 +71,42 @@ export default function ImpactPage() {
     }
 
     let activeController = refresh();
-    const interval = setInterval(() => {
-      activeController = refresh();
-    }, POLL_INTERVAL_MS);
+    let interval: ReturnType<typeof setInterval> | undefined;
+
+    function startPolling() {
+      stopPolling();
+      interval = setInterval(() => {
+        activeController = refresh();
+      }, POLL_INTERVAL_MS);
+    }
+
+    function stopPolling() {
+      if (interval !== undefined) {
+        clearInterval(interval);
+        interval = undefined;
+      }
+    }
+
+    // Pause the interval while the tab is hidden and catch up with one
+    // fetch as soon as it becomes visible again.
+    function handleVisibilityChange() {
+      if (document.visibilityState === 'visible') {
+        activeController = refresh();
+        startPolling();
+      } else {
+        stopPolling();
+      }
+    }
+
+    if (document.visibilityState === 'visible') {
+      startPolling();
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
       cancelled = true;
-      clearInterval(interval);
+      stopPolling();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       activeController.abort();
     };
   }, [retryCount]);
@@ -91,7 +137,8 @@ export default function ImpactPage() {
             the next successful poll clears the notice. */}
         {loadError && impact && (
           <p role="status" className="mt-8 text-sm text-amber-700 dark:text-amber-400">
-            Couldn&apos;t refresh — showing the last numbers we loaded.
+            Couldn&apos;t refresh — showing the last numbers we loaded
+            {lastUpdated ? ` (last updated ${lastUpdated.toLocaleTimeString()})` : ''}.
           </p>
         )}
 
@@ -130,6 +177,14 @@ export default function ImpactPage() {
               <dd className="text-2xl font-bold">{impact.ngoCount}</dd>
             </div>
           </dl>
+        )}
+
+        {impact && lastUpdated && (
+          <p className="mt-4 text-xs text-gray-500 dark:text-gray-400">
+            {t('updated', {
+              time: formatElapsed(locale, Math.max(now, lastUpdated.getTime()) - lastUpdated.getTime()),
+            })}
+          </p>
         )}
       </main>
   );

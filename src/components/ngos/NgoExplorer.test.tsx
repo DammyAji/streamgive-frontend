@@ -90,7 +90,7 @@ describe('NgoExplorer', () => {
 
     // Now search: only the 15 "Water" NGOs should be considered, not just
     // the ones already loaded onto the page.
-    const searchInput = screen.getByPlaceholderText('Search NGOs by name…');
+    const searchInput = screen.getByPlaceholderText('Search NGOs by name… (press /)');
     fireEvent.change(searchInput, { target: { value: 'Water' } });
 
     // Search resets to page 1, so only PAGE_SIZE of the 15 matches show.
@@ -112,7 +112,7 @@ describe('NgoExplorer', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Load more' }));
     expect(mockReplace).toHaveBeenLastCalledWith('/ngos?page=2', { scroll: false });
 
-    fireEvent.change(screen.getByPlaceholderText('Search NGOs by name…'), {
+    fireEvent.change(screen.getByPlaceholderText('Search NGOs by name… (press /)'), {
       target: { value: 'Water' },
     });
     expect(mockReplace).toHaveBeenLastCalledWith('/ngos?q=Water', { scroll: false });
@@ -160,7 +160,7 @@ describe('NgoExplorer', () => {
     const ngos = buildNgos();
     renderWithIntl(<NgoExplorer ngos={ngos} />);
 
-    fireEvent.change(screen.getByPlaceholderText('Search NGOs by name…'), {
+    fireEvent.change(screen.getByPlaceholderText('Search NGOs by name… (press /)'), {
       target: { value: 'Nonexistent Org' },
     });
 

@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import type { NgoProfile } from '@/lib/api';
 import { formatAmount } from '@/lib/format';
@@ -11,6 +11,9 @@ import { formatAmount } from '@/lib/format';
 // Client-side pagination over the already-fetched list — a first step
 // until the backend exposes real pagination (see backend repo).
 const PAGE_SIZE = 9;
+
+// Up to this many NGOs can be compared side by side.
+const MAX_COMPARE = 3;
 
 type SortOption = 'newest' | 'most-active-streams' | 'most-committed';
 
@@ -56,6 +59,37 @@ export function NgoExplorer({ ngos }: { ngos: NgoProfile[] }) {
   const [searchQuery, setSearchQuery] = useState(() => searchParams.get('q') ?? '');
   const [page, setPage] = useState(() => parsePage(searchParams.get('page')));
   const [sortBy, setSortBy] = useState<SortOption>(() => parseSort(searchParams.get('sort')));
+
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const [compareIds, setCompareIds] = useState<string[]>([]);
+
+  function toggleCompare(id: string): void {
+    setCompareIds((current) => {
+      if (current.includes(id)) return current.filter((existing) => existing !== id);
+      return current.length >= MAX_COMPARE ? current : [...current, id];
+    });
+  }
+
+  // Pressing "/" outside a text field jumps to the search box.
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent): void {
+      if (event.key !== '/' || event.ctrlKey || event.metaKey || event.altKey) return;
+      const target = event.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.tagName === 'SELECT' ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+      event.preventDefault();
+      searchInputRef.current?.focus();
+    }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const queryString = searchParams.toString();
 
@@ -135,6 +169,7 @@ export function NgoExplorer({ ngos }: { ngos: NgoProfile[] }) {
         <label className="block flex-1 min-w-[200px] max-w-sm">
           <span className="sr-only">{t('searchLabel')}</span>
           <input
+            ref={searchInputRef}
             type="search"
             value={searchQuery}
             onChange={(event) => handleSearchChange(event.target.value)}
@@ -155,6 +190,20 @@ export function NgoExplorer({ ngos }: { ngos: NgoProfile[] }) {
           </select>
         </label>
       </div>
+
+      {compareIds.length > 0 && (
+        <p className="mt-4 flex flex-wrap items-center gap-3 text-sm" role="status">
+          <span className="text-gray-600 dark:text-gray-400">{t('compareLimit')}</span>
+          {compareIds.length >= 2 && (
+            <Link
+              href={`/ngos/compare?ids=${compareIds.map(encodeURIComponent).join(',')}`}
+              className="font-medium underline"
+            >
+              {t('openCompare', { count: compareIds.length })}
+            </Link>
+          )}
+        </p>
+      )}
 
       {filteredNgos.length === 0 ? (
         <p className="mt-8 text-gray-600 dark:text-gray-400">
@@ -198,6 +247,15 @@ export function NgoExplorer({ ngos }: { ngos: NgoProfile[] }) {
                   {t('viewProfile')}
                 </span>
               </Link>
+              <button
+                type="button"
+                aria-pressed={compareIds.includes(ngo.id)}
+                disabled={!compareIds.includes(ngo.id) && compareIds.length >= MAX_COMPARE}
+                onClick={() => toggleCompare(ngo.id)}
+                className="mt-2 rounded-md border border-gray-300 px-3 py-1 text-sm font-medium hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:hover:bg-gray-800"
+              >
+                {compareIds.includes(ngo.id) ? t('removeFromCompare') : t('compare')}
+              </button>
             </li>
           ))}
         </ul>

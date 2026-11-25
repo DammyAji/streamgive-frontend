@@ -1,7 +1,8 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { getNgo, type NgoProfile, type Stream } from '@/lib/api';
+import { renderWithIntl } from '@/test/renderWithIntl';
 
 vi.mock('next-intl/server', async () => {
   const { createTranslator } = await vi.importActual<typeof import('next-intl')>('next-intl');
@@ -54,7 +55,7 @@ import NgoProfilePage from './page';
 
 async function renderProfile(ngo: NgoProfile) {
   vi.mocked(getNgo).mockResolvedValue(ngo);
-  render(await NgoProfilePage({ params: Promise.resolve({ id: ngo.id }) }));
+  renderWithIntl(await NgoProfilePage({ params: Promise.resolve({ id: ngo.id }) }));
 }
 
 describe('NgoProfilePage', () => {
@@ -64,7 +65,7 @@ describe('NgoProfilePage', () => {
 
   it('shows totalCommitted and totalWithdrawn formatted, not as raw base units', async () => {
     const jsx = await NgoProfilePage({ params: Promise.resolve({ id: NGO.id }) });
-    render(jsx);
+    renderWithIntl(jsx);
 
     expect(screen.getByText('5')).toBeInTheDocument();
     expect(screen.getByText('1')).toBeInTheDocument();

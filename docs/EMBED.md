@@ -29,13 +29,36 @@ you can hand-edit or rebuild it.
 - `YOUR_NGO_ID` is StreamGive's internal id for your NGO (not your Stellar
   address) — copy it from the generated snippet on `/ngo-admin` rather than
   typing it by hand.
-- The route takes **no query parameters**. There is currently no way to
-  customize colors, currency, or preset amounts via the URL — everything
-  shown is driven by your NGO's profile.
+- The route takes one optional query parameter, `locale` (see
+  [Language](#language) below). There is currently no way to customize
+  colors, currency, or preset amounts via the URL — everything else shown
+  is driven by your NGO's profile.
 - `width`/`height` are the two properties you can freely change. There's no
   responsive/percentage sizing mode; the widget renders at a fixed pixel
   size and the surrounding page controls that size the way it would any
   other iframe.
+
+## Language
+
+The widget text is translated, and the embedding page can choose the language
+with the optional `locale` query parameter:
+
+```html
+<iframe
+  src="https://app.streamgive.example/embed/YOUR_NGO_ID?locale=es"
+  width="400"
+  height="600"
+  style="border:0"
+></iframe>
+```
+
+| Value | Language |
+| ----- | -------- |
+| `en` | English (default) |
+| `es` | Spanish |
+
+If `locale` is missing or is not a supported value, the widget falls back to
+English.
 
 ## Sizing
 

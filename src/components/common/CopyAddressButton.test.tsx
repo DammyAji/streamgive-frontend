@@ -1,5 +1,7 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { renderWithIntl } from '@/test/renderWithIntl';
 
 import { CopyAddressButton } from './CopyAddressButton';
 
@@ -21,7 +23,7 @@ describe('CopyAddressButton', () => {
     const writeTextMock = vi.mocked(navigator.clipboard.writeText).mockResolvedValue(undefined);
     const fullAddress = 'G' + 'A'.repeat(55);
 
-    render(<CopyAddressButton address={fullAddress} />);
+    renderWithIntl(<CopyAddressButton address={fullAddress} />);
 
     const button = screen.getByRole('button', { name: `Copy address ${fullAddress}` });
     expect(button).toHaveTextContent('Copy');
@@ -51,7 +53,7 @@ describe('CopyAddressButton', () => {
       .mockRejectedValue(new Error('Denied'));
     const fullAddress = 'G' + 'B'.repeat(55);
 
-    render(<CopyAddressButton address={fullAddress} />);
+    renderWithIntl(<CopyAddressButton address={fullAddress} />);
 
     const button = screen.getByRole('button', { name: `Copy address ${fullAddress}` });
 
@@ -73,7 +75,7 @@ describe('CopyAddressButton', () => {
   it('clears the reset timer on unmount', async () => {
     vi.mocked(navigator.clipboard.writeText).mockResolvedValue(undefined);
 
-    const { unmount } = render(<CopyAddressButton address="GABC" />);
+    const { unmount } = renderWithIntl(<CopyAddressButton address="GABC" />);
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button'));
@@ -83,5 +85,20 @@ describe('CopyAddressButton', () => {
     unmount();
 
     expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('renders the labels and screen reader text in Spanish', async () => {
+    vi.mocked(navigator.clipboard.writeText).mockResolvedValue(undefined);
+    renderWithIntl(<CopyAddressButton address="GABC" />, 'es');
+
+    const button = screen.getByRole('button', { name: 'Copiar dirección GABC' });
+    expect(button).toHaveTextContent('Copiar');
+
+    await act(async () => {
+      fireEvent.click(button);
+    });
+
+    expect(button).toHaveTextContent('¡Copiado!');
+    expect(screen.getByRole('status')).toHaveTextContent('Dirección copiada al portapapeles.');
   });
 });

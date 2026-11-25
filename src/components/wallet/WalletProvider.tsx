@@ -232,7 +232,10 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       setNetworkMismatch(await walletNetworkMismatch());
     } catch (err) {
       if (!isUserDismissal(err)) {
-        showToast('error', errorMessage(err) || 'Couldn\'t connect your wallet. Please try again.');
+        showToast(
+          'error',
+          `${errorMessage(err) || 'Couldn\'t connect your wallet.'} See docs/WALLET_TROUBLESHOOTING.md for fixes.`,
+        );
       }
     } finally {
       setConnecting(false);

@@ -55,6 +55,9 @@ export function Footer() {
         <Link href="/terms" className="hover:text-black dark:hover:text-white">
           {t('terms')}
         </Link>
+        <Link href="/accessibility" className="hover:text-black dark:hover:text-white">
+          {t('accessibility')}
+        </Link>
       </div>
     </footer>
   );

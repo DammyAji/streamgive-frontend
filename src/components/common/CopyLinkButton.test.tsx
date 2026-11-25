@@ -1,5 +1,7 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { renderWithIntl } from '@/test/renderWithIntl';
 
 import { CopyLinkButton } from './CopyLinkButton';
 
@@ -28,7 +30,7 @@ describe('CopyLinkButton', () => {
 
   it('copies the absolute current URL and shows a confirmation that resets', async () => {
     window.history.replaceState(null, '', '/ngos/ngo-123?ref=share#details');
-    render(<CopyLinkButton />);
+    renderWithIntl(<CopyLinkButton />);
 
     expect(screen.getByRole('status')).toBeEmptyDOMElement();
 
@@ -52,7 +54,7 @@ describe('CopyLinkButton', () => {
 
   it('copies an absolute URL for the supplied path instead of the current page', async () => {
     window.history.replaceState(null, '', '/ngos/ngo-123/donate/success');
-    render(<CopyLinkButton path="/ngos/ngo-123" />);
+    renderWithIntl(<CopyLinkButton path="/ngos/ngo-123" />);
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Copy link' }));
@@ -67,7 +69,7 @@ describe('CopyLinkButton', () => {
 
   it('shows an error and fallback instructions when the clipboard write fails', async () => {
     vi.mocked(navigator.clipboard.writeText).mockRejectedValue(new Error('Permission denied'));
-    render(<CopyLinkButton path="/ngos/ngo-123" />);
+    renderWithIntl(<CopyLinkButton path="/ngos/ngo-123" />);
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Copy link' }));
@@ -87,5 +89,16 @@ describe('CopyLinkButton', () => {
 
     expect(screen.getByRole('button', { name: 'Copy link' })).toBeInTheDocument();
     expect(screen.getByRole('status')).toBeEmptyDOMElement();
+  });
+
+  it('renders the labels and screen reader text in Spanish', async () => {
+    renderWithIntl(<CopyLinkButton path="/ngos/ngo-123" />, 'es');
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Copiar enlace' }));
+    });
+
+    expect(screen.getByRole('button', { name: '¡Enlace copiado!' })).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('Enlace copiado al portapapeles.');
   });
 });

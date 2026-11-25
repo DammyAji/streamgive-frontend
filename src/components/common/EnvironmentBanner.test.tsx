@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 const TESTNET_PASSPHRASE = 'Test SDF Network ; September 2015';
@@ -15,7 +15,9 @@ async function freshEnvironmentBanner(networkPassphrase: string) {
   vi.stubEnv('NEXT_PUBLIC_NETWORK_PASSPHRASE', networkPassphrase);
   vi.resetModules();
   const { EnvironmentBanner } = await import('./EnvironmentBanner');
-  return EnvironmentBanner;
+  // Imported after the reset too, so it shares the module registry the banner loaded from.
+  const { renderWithIntl } = await import('@/test/renderWithIntl');
+  return { EnvironmentBanner, renderWithIntl };
 }
 
 afterEach(() => {
@@ -24,16 +26,25 @@ afterEach(() => {
 
 describe('EnvironmentBanner', () => {
   it('shows a testnet warning when not on mainnet', async () => {
-    const EnvironmentBanner = await freshEnvironmentBanner(TESTNET_PASSPHRASE);
-    render(<EnvironmentBanner />);
+    const { EnvironmentBanner, renderWithIntl } = await freshEnvironmentBanner(TESTNET_PASSPHRASE);
+    renderWithIntl(<EnvironmentBanner />);
 
     expect(screen.getByRole('alert')).toHaveTextContent(/testnet mode/i);
     expect(screen.getByRole('alert')).toHaveTextContent(/not real money/i);
   });
 
+  it('translates the banner and keeps the network name interpolated in Spanish', async () => {
+    const { EnvironmentBanner, renderWithIntl } = await freshEnvironmentBanner(TESTNET_PASSPHRASE);
+    renderWithIntl(<EnvironmentBanner />, 'es');
+
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Modo Testnet: las transacciones usan fondos de prueba, no dinero real.',
+    );
+  });
+
   it('renders nothing on mainnet', async () => {
-    const EnvironmentBanner = await freshEnvironmentBanner(MAINNET_PASSPHRASE);
-    const { container } = render(<EnvironmentBanner />);
+    const { EnvironmentBanner, renderWithIntl } = await freshEnvironmentBanner(MAINNET_PASSPHRASE);
+    const { container } = renderWithIntl(<EnvironmentBanner />);
 
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     expect(container).toBeEmptyDOMElement();

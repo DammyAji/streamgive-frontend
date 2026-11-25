@@ -1,3 +1,5 @@
+import { useTranslations } from 'next-intl';
+
 const PUBLIC_NETWORK_PASSPHRASE = 'Public Global Stellar Network ; September 2015';
 const DEFAULT_NETWORK_PASSPHRASE = 'Test SDF Network ; September 2015';
 
@@ -18,6 +20,7 @@ function getNetworkName(): string {
  * the red used for hard errors, since this isn't a failure state.
  */
 export function EnvironmentBanner() {
+  const t = useTranslations('EnvironmentBanner');
   const networkName = getNetworkName();
 
   if (networkName === 'Mainnet') {
@@ -29,7 +32,7 @@ export function EnvironmentBanner() {
       role="alert"
       className="border-b border-amber-300 bg-amber-100 px-6 py-2 text-center text-sm font-medium text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300"
     >
-      {networkName} mode: transactions use test funds, not real money.
+      {t('message', { network: networkName })}
     </div>
   );
 }
