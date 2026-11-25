@@ -31,6 +31,8 @@ loading, cache revalidation, polling intervals, and the known 1+N impact
 fetch pattern, and [docs/I18N.md](./docs/I18N.md) for how translations are
 wired up and how to add a language.
 
+See the [documentation index](./docs/README.md) for a list of every guide.
+
 See [docs/adr/README.md](./docs/adr/README.md) for accepted architecture
 decisions and the template for recording new ones.
 
@@ -207,6 +209,14 @@ This table lists every route under `src/app`, who it is meant for, and its techn
 | `/sitemap.xml` | Search crawlers | No | Metadata Route (`src/app/sitemap.ts`) |
 
 See the [Embed Widget Guide](./docs/EMBED.md) for details on embedding the `/embed/[ngoId]` widget.
+
+## Visual regression tests
+
+`e2e/visual.spec.ts` takes full-page screenshots of the landing, explorer and
+disconnected dashboard pages in light and dark mode at desktop and mobile
+widths. Run them with `npm run test:visual`. After an intended UI change,
+regenerate the baselines with `npm run test:visual:update` and commit the
+updated images from `e2e/visual.spec.ts-snapshots/`.
 
 ## Contributing
 

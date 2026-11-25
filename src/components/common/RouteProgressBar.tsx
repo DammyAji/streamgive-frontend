@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
@@ -24,6 +25,7 @@ import { useEffect, useRef, useState } from 'react';
 const MAX_DURATION_MS = 8000;
 
 export function RouteProgressBar() {
+  const t = useTranslations('RouteProgressBar');
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [active, setActive] = useState(false);
@@ -97,7 +99,7 @@ export function RouteProgressBar() {
   return (
     <div
       role="status"
-      aria-label="Loading page"
+      aria-label={t('loadingPage')}
       className="fixed inset-x-0 top-0 z-50 h-1 overflow-hidden bg-transparent"
     >
       <div className="route-progress-bar h-full bg-blue-600 dark:bg-blue-400" />

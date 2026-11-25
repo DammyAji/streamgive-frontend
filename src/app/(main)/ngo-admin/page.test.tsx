@@ -1,7 +1,8 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { Stream } from '@/lib/api';
+import { renderWithIntl as render } from '@/test/renderWithIntl';
 
 import NgoAdminPage from './page';
 

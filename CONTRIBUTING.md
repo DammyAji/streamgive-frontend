@@ -7,6 +7,9 @@ decisions) see the
 
 ## Local setup
 
+Use Node 24 (the version CI runs). `.nvmrc` pins it and `package.json`
+`engines` enforces it, so `nvm use` picks the right version.
+
 ```bash
 cp .env.example .env          # fill in any blank vars — see ENVIRONMENT.md
 npm install
@@ -66,6 +69,44 @@ page with the wallet disconnected; no wallet extension or transaction is
 needed. Checks wait for populated content and fail if it cannot load.
 Playwright starts the frontend automatically, or you can set `E2E_BASE_URL`
 to an already-running frontend as described above.
+
+### End-to-end tests (E2E)
+
+The Playwright specs live in `e2e/` and run in Chromium only.
+
+```bash
+npx playwright install chromium            # one-off browser download
+npm run test:e2e                           # every spec (starts npm run dev for you)
+npx playwright test e2e/mobile-nav.spec.ts # a single spec file
+npx playwright test -g "theme preference"  # specs whose title matches
+npx playwright test --headed --debug       # watch the browser and step through
+npx playwright show-report                 # open the last HTML report
+```
+
+Set `E2E_BASE_URL` to test an already-running instance instead of letting
+Playwright start the dev server.
+
+**Which specs need a wallet.** Only `e2e/wallet-flow.spec.ts` does. It drives
+a real Freighter extension against testnet, so it is skipped unless
+`E2E_FREIGHTER_PATH` points at an unpacked Freighter folder whose profile
+already has a funded testnet account (see the comment at the top of the spec).
+Every other spec, including `donor-flow.spec.ts`, runs with no wallet
+extension. CI only runs `e2e/donor-flow.spec.ts`.
+
+**Screenshot baselines.** No spec uses `toHaveScreenshot` yet, so there are no
+baselines to refresh today. If you add one, generate or refresh its baseline
+with `npx playwright test <spec> --update-snapshots`, then review the changed
+images in your diff before committing them.
+
+Troubleshooting:
+
+- Port 3001 already in use: stop the other dev server, or start it yourself
+  and set `E2E_BASE_URL=http://localhost:3001` so Playwright reuses it.
+- Tests that read NGOs fail or time out: the backend at `NEXT_PUBLIC_API_URL`
+  is not running or has no verified NGO.
+- "Executable doesn't exist": run `npx playwright install chromium` again.
+- A failure you cannot explain from the log: rerun that spec with `--trace on`
+  and open it with `npx playwright show-trace <trace.zip>`.
 
 ### Writing a new test
 
@@ -247,3 +288,16 @@ interactive UI, check the following before opening a PR so we don't regress it:
 - **Interactive elements are real elements.** Use `<button>`/`<a>` rather
   than a `<div onClick>` — this gets keyboard support, focus, and role
   semantics for free instead of having to re-implement them.
+
+## Triaging the npm audit workflow
+
+The `npm audit` workflow runs weekly and whenever `package.json` or
+`package-lock.json` changes. It fails on high or critical advisories in
+production dependencies.
+
+1. Open the failed run and read which package and advisory it names.
+2. Run `npm audit --omit=dev` locally to see the dependency path.
+3. Try `npm update <package>` for a fixed version in range, or bump the parent
+   dependency that pulls it in.
+4. If no fix exists yet, open an issue linking the advisory and note why it is
+   not reachable from this app.

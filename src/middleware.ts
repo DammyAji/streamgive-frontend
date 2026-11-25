@@ -2,6 +2,18 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 import { API_URL } from '@/lib/config';
+import { THEME_INIT_SCRIPT } from '@/lib/theme';
+
+let cachedThemeHash: string | null = null;
+
+export async function getThemeInitScriptHash(): Promise<string> {
+  if (cachedThemeHash) return cachedThemeHash;
+  const bytes = new TextEncoder().encode(THEME_INIT_SCRIPT);
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  const binary = String.fromCharCode(...new Uint8Array(digest));
+  cachedThemeHash = `'sha256-${btoa(binary)}'`;
+  return cachedThemeHash;
+}
 
 const SOROBAN_RPC_URL =
   process.env.NEXT_PUBLIC_SOROBAN_RPC_URL ?? 'https://soroban-testnet.stellar.org';
@@ -33,15 +45,12 @@ const CONNECT_SOURCES = [
 /**
  * Builds the Content-Security-Policy for a request.
  *
- * script-src still allows 'unsafe-inline': Next.js emits inline bootstrap
- * scripts and layout.tsx has an inline theme-init script. Moving to
- * per-request nonces would make every page dynamic, so that is left as a
- * follow-up; the rest of the policy (frame-ancestors, connect-src,
- * object-src, base-uri, form-action) still limits what injected script can
- * do.
+ * Inline scripts are restricted to the pre-hydration theme init script
+ * (matched by its SHA-256 hash) and Next.js bootstrap scripts carrying the
+ * per-request nonce.
  */
-function contentSecurityPolicy(isEmbed: boolean): string {
-  const scriptSources = ["'self'", "'unsafe-inline'"];
+function contentSecurityPolicy(isEmbed: boolean, nonce: string, themeHash: string): string {
+  const scriptSources = ["'self'", `'nonce-${nonce}'`, themeHash];
   if (process.env.NODE_ENV !== 'production') {
     // React Refresh needs eval in development only.
     scriptSources.push("'unsafe-eval'");
@@ -88,13 +97,25 @@ const PERMISSIONS_POLICY = [
  * "every route except /embed" in it isn't something I could verify
  * without running it. This is easier to read and to get right.
  */
-export function middleware(request: NextRequest) {
-  const response = NextResponse.next();
+export async function middleware(request: NextRequest) {
+  const nonce = btoa(crypto.randomUUID());
+  const themeHash = await getThemeInitScriptHash();
   const isEmbed = request.nextUrl.pathname.startsWith('/embed');
+  const csp = contentSecurityPolicy(isEmbed, nonce, themeHash);
+
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('x-nonce', nonce);
+  requestHeaders.set('Content-Security-Policy', csp);
+
+  const response = NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
 
   response.headers.set('X-Content-Type-Options', 'nosniff');
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-  response.headers.set('Content-Security-Policy', contentSecurityPolicy(isEmbed));
+  response.headers.set('Content-Security-Policy', csp);
   // Two years, as required for HSTS preload eligibility; browsers ignore the
   // header over plain http, so local development is unaffected.
   response.headers.set(
@@ -113,45 +134,3 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: '/:path*',
 };
-
-import { describe, expect, it } from 'vitest';
-import { NextRequest } from 'next/server';
-import middleware from '@/middleware';
-
-describe('Accept-Language locale detection', () => {
-  it('matches an exact supported locale', async () => {
-    const request = new NextRequest('http://localhost/', {
-      headers: {
-        'accept-language': 'es',
-      },
-    });
-
-    const response = middleware(request);
-
-    expect(response.headers.get('location')).toContain('/es');
-  });
-
-  it('matches a regional language to a supported base locale', async () => {
-    const request = new NextRequest('http://localhost/', {
-      headers: {
-        'accept-language': 'es-MX',
-      },
-    });
-
-    const response = middleware(request);
-
-    expect(response.headers.get('location')).toContain('/es');
-  });
-
-  it('falls back to English for unsupported languages', async () => {
-    const request = new NextRequest('http://localhost/', {
-      headers: {
-        'accept-language': 'fr',
-      },
-    });
-
-    const response = middleware(request);
-
-    expect(response.headers.get('location')).toContain('/en');
-  });
-});

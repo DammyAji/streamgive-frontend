@@ -28,3 +28,9 @@ export const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3001
  * here to decide whether the nav link is worth showing.
  */
 export const PLATFORM_ADMIN_ADDRESS = process.env.NEXT_PUBLIC_ADMIN_ADDRESS ?? '';
+
+/**
+ * Whether the backend reports a PAUSED stream status. The Pause button is
+ * only offered when this is on; Resume always shows for a paused stream.
+ */
+export const STREAM_PAUSE_SUPPORTED = process.env.NEXT_PUBLIC_STREAM_PAUSE_SUPPORTED === 'true';

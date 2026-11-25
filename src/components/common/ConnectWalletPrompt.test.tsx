@@ -1,7 +1,8 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useWallet } from '@/components/wallet/WalletProvider';
+import { renderWithIntl } from '@/test/renderWithIntl';
 
 import { ConnectWalletPrompt } from './ConnectWalletPrompt';
 
@@ -30,7 +31,7 @@ describe('ConnectWalletPrompt', () => {
     const { connect } = mockUseWallet();
     const message = 'Connect your wallet to view your streams.';
 
-    render(<ConnectWalletPrompt message={message} />);
+    renderWithIntl(<ConnectWalletPrompt message={message} />);
 
     expect(screen.getByText(message)).toBeInTheDocument();
     expect(connect).not.toHaveBeenCalled();
@@ -44,10 +45,23 @@ describe('ConnectWalletPrompt', () => {
     mockUseWallet.mockReturnValue({ ...mockUseWallet(), connecting: true });
     const message = 'Connect your wallet to view your streams.';
 
-    render(<ConnectWalletPrompt message={message} />);
+    renderWithIntl(<ConnectWalletPrompt message={message} />);
 
     expect(screen.getByRole('status')).toHaveTextContent('Loading');
     expect(screen.queryByText(message)).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Connect Wallet' })).not.toBeInTheDocument();
+  });
+
+  it('shows the button, loading line and help link in Spanish', () => {
+    const message = 'Conecta tu billetera para ver tus flujos.';
+
+    const { unmount } = renderWithIntl(<ConnectWalletPrompt message={message} />, 'es');
+    expect(screen.getByRole('button', { name: 'Conectar billetera' })).toBeInTheDocument();
+    expect(screen.getByText('¿Problemas para conectar?')).toBeInTheDocument();
+    unmount();
+
+    mockUseWallet.mockReturnValue({ ...mockUseWallet(), connecting: true });
+    renderWithIntl(<ConnectWalletPrompt message={message} />, 'es');
+    expect(screen.getByRole('status')).toHaveTextContent('Cargando');
   });
 });

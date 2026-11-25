@@ -33,7 +33,7 @@ export function buildDonationHistoryCsv(streams: Stream[]): string {
       stream.onChainId,
       stream.ngo.name,
       tokenLabel(stream.tokenAddress),
-      stream.status === 'ACTIVE' ? 'Active' : 'Cancelled',
+      stream.status === 'ACTIVE' ? 'Active' : stream.status === 'PAUSED' ? 'Paused' : 'Cancelled',
       formatTokenAmount(committed.toString(), stream.tokenAddress),
       formatTokenAmount(stream.withdrawn, stream.tokenAddress),
       formatTokenAmount(stream.rate, stream.tokenAddress),

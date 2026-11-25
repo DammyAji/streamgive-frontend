@@ -9,7 +9,7 @@ a new origin.
 | Directive | Value | Why |
 |---|---|---|
 | `default-src` | `'self'` | Anything not listed below is same-origin only. |
-| `script-src` | `'self' 'unsafe-inline'` (plus `'unsafe-eval'` in development) | Next.js emits inline bootstrap scripts and `layout.tsx` has an inline theme-init script. React Refresh needs eval in development only. |
+| `script-src` | `'self'`, a per-request `'nonce-...'`, the SHA-256 hash of the theme-init script (plus `'unsafe-eval'` in development) | Next.js bootstrap scripts carry the nonce and the inline theme-init script in `layout.tsx` is matched by its hash, so no `'unsafe-inline'`. React Refresh needs eval in development only. |
 | `style-src` | `'self' 'unsafe-inline'` | Inline styles set by components. |
 | `img-src` | `'self' data: blob:` | Local images, data URIs and the QR code. |
 | `font-src` | `'self' data:` | Self-hosted fonts only. |

@@ -1,12 +1,16 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { RouteError } from './RouteError';
 
 describe('RouteError', () => {
   beforeEach(() => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it('calls reset when Try again is clicked', async () => {
@@ -66,19 +70,26 @@ describe('RouteError', () => {
     expect(screen.getByText(/Error reference/)).toBeInTheDocument();
   });
 
-  it('logs the error once and again when a different error replaces it', () => {
+  it('reports the error once and again when a different error replaces it', () => {
     const first = new Error('first');
     const second = new Error('second');
+    const rawErrors = () =>
+      vi.mocked(console.error).mock.calls.filter(([value]) => value instanceof Error);
+    const summaries = () =>
+      vi.mocked(console.error).mock.calls.filter(([value]) => value === '[StreamGive route error]');
+
     const { rerender } = render(<RouteError error={first} reset={() => {}} />);
 
-    expect(console.error).toHaveBeenCalledTimes(1);
-    expect(console.error).toHaveBeenLastCalledWith(first);
+    expect(rawErrors()).toEqual([[first]]);
+    expect(summaries()).toHaveLength(1);
 
     rerender(<RouteError error={first} reset={() => {}} />);
-    expect(console.error).toHaveBeenCalledTimes(1);
+    expect(rawErrors()).toHaveLength(1);
+    expect(summaries()).toHaveLength(1);
 
     rerender(<RouteError error={second} reset={() => {}} />);
-    expect(console.error).toHaveBeenCalledTimes(2);
-    expect(console.error).toHaveBeenLastCalledWith(second);
+    expect(rawErrors()).toEqual([[first], [second]]);
+    expect(summaries()).toHaveLength(2);
+    expect(summaries()[1][1]).toEqual({ name: 'Error', boundary: 'route' });
   });
 });

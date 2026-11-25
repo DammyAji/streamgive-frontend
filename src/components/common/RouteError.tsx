@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useErrorReporting } from '@/lib/errorReporter';
 
 type RouteErrorProps = {
   error: Error & { digest?: string };
@@ -9,16 +9,14 @@ type RouteErrorProps = {
   subject?: string;
 };
 
-/** Shared body of every route-level `error.tsx`: logs the error, offers a
- * Try again action and shows the digest so a failure can be matched to the
- * server logs. The surrounding chrome comes from the route group layout,
- * which stays mounted while this renders in its place — except for the
- * root `error.tsx`, which wraps this itself since it sits outside that
- * layout and has to supply its own. */
+/** Shared body of every route-level `error.tsx`: reports the error through
+ * the pluggable reporter, offers a Try again action and shows the digest so
+ * a failure can be matched to the server logs. The surrounding chrome comes
+ * from the route group layout, which stays mounted while this renders in
+ * its place — except for the root `error.tsx`, which wraps this itself
+ * since it sits outside that layout and has to supply its own. */
 export function RouteError({ error, reset, subject = 'This page' }: RouteErrorProps) {
-  useEffect(() => {
-    console.error(error);
-  }, [error]);
+  useErrorReporting(error, 'route');
 
   return (
     <main

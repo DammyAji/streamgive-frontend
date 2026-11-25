@@ -25,11 +25,36 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * Checks the backend's readiness probe (GET /health/ready). This is a
+ * root-level route, not a /v1 route — see streamgive-backend's README — and
+ * reports both database and indexer/RPC health with 503 when either is down.
+ *
+ * Returns false for an unhealthy response, a non-JSON body, a timeout or a
+ * network failure: callers only need to know whether the service is
+ * available, not why it isn't. The endpoint checks external systems and is
+ * rate-limited, so callers must poll it at a low rate.
+ */
+export async function getBackendReady(signal?: AbortSignal): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_URL}/health/ready`, { signal: withTimeout(signal) });
+    if (!res.ok) {
+      return false;
+    }
+    const body = (await res.json()) as { status?: unknown };
+    return body?.status === 'ok';
+  } catch {
+    return false;
+  }
+}
+
 export type Ngo = {
   id: string;
   ownerAddress: string;
   name: string;
   verified: boolean;
+  verifiedAt?: string | null;
+  verificationExpiresAt?: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -130,11 +155,14 @@ export type Stream = {
   rate: string;
   balance: string;
   withdrawn: string;
-  status: 'ACTIVE' | 'CANCELLED';
+  /** PAUSED is only sent by backends that track paused streams. */
+  status: 'ACTIVE' | 'PAUSED' | 'CANCELLED';
   createdAt: string;
   updatedAt: string;
   /** Optional start time of a stream created with a delayed start. */
   startsAt?: string;
+  /** Optional short note on the stream, such as a campaign name. Plain text. */
+  memo?: string | null;
   donor: { address: string };
   ngo: { id: string; name: string; ownerAddress: string };
 };
