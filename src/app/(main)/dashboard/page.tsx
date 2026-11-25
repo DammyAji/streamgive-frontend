@@ -2,28 +2,31 @@
 
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { useCallback, useEffect, useId, useState } from 'react';
+import { useId, useState } from 'react';
 
 import { ConnectWalletPrompt } from '@/components/common/ConnectWalletPrompt';
 import { EndingSoonBadge } from '@/components/dashboard/EndingSoonBadge';
 import { StreamControls } from '@/components/dashboard/StreamControls';
 import { StreamDetailsModal } from '@/components/streams/StreamDetailsModal';
 import { useWallet } from '@/components/wallet/WalletProvider';
-import { getStreams, type Stream } from '@/lib/api';
+import { type Stream } from '@/lib/api';
 import { buildDonationHistoryCsv } from '@/lib/csv';
 import { formatTokenAmount, formatTokenTotals } from '@/lib/format';
 import { isEndingSoon } from '@/lib/streamEnd';
-import { useLatestRequest } from '@/lib/useLatestRequest';
+import {
+  filterStreams,
+  initialStreamFilter,
+  sortStreams,
+  type SortOrder,
+  type StreamFilter,
+} from '@/lib/streamFilters';
+import { useDonorStreams } from '@/lib/useDonorStreams';
 import { useSharedClock } from '@/lib/useSharedClock';
 
 // Client-side pagination over the already-fetched list — same interim
 // approach as NgoExplorer, until the backend exposes real limit/offset
 // pagination for /streams.
 const PAGE_SIZE = 10;
-
-// Keeps balances/withdrawn amounts from going stale while the tab sits
-// open — same polling approach as the impact page (src/app/impact/page.tsx).
-const POLL_INTERVAL_MS = 30_000;
 
 function LiveBalance({ stream }: { stream: Stream }) {
   const t = useTranslations('Dashboard');
@@ -107,143 +110,20 @@ function downloadDonationHistoryCsv(streams: Stream[]): void {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-export type SortOrder = 'newest' | 'oldest' | 'largest-committed' | 'ending-soonest';
+export type { SortOrder };
 
 export default function DashboardPage() {
   const t = useTranslations('Dashboard');
   const { address } = useWallet();
-  const [streams, setStreams] = useState<Stream[]>([]);
-  // Starts true so a connected donor never sees the empty state in the
-  // render before the first fetch begins.
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState(false);
   const [detailsStream, setDetailsStream] = useState<Stream | null>(null);
-  const [filter, setFilter] = useState<'ALL' | 'ACTIVE' | 'CANCELLED'>('ALL');
-  const [, setFilterInitialized] = useState(false);
+  const [filter, setFilter] = useState<StreamFilter>('ALL');
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOrder, setSortOrder] = useState<SortOrder>('newest');
 
-  // Drop any streams fetched under a previous address as soon as `address`
-  // changes, during render rather than in an effect, so a stale list from
-  // the old wallet is never painted (even briefly) under the new one.
-  const [prevAddress, setPrevAddress] = useState(address);
-  if (address !== prevAddress) {
-    setPrevAddress(address);
-    setStreams([]);
-    setLoadError(false);
-    setLoading(true);
-  }
-
-  // Shared by refresh() and the poll below, so a poll can't overlap a manual
-  // refresh (or a wallet switch) and land after it with older data.
-  const { begin, cancel } = useLatestRequest();
-
-  const refresh = useCallback(() => {
-    if (!address) {
-      cancel();
-      setStreams([]);
-      setFilterInitialized(false);
-      return;
-    }
-
-    const request = begin();
-    setLoading(true);
-    setLoadError(false);
-    getStreams({ donor: address }, request.signal)
-      .then((data) => {
-        if (!request.isCurrent()) return;
-        setStreams(data);
-        setFilterInitialized((prev) => {
-          if (!prev) {
-            setFilter(data.some((s) => s.status === 'ACTIVE') ? 'ACTIVE' : 'ALL');
-            return true;
-          }
-          return prev;
-        });
-      })
-      .catch(() => {
-        if (request.isCurrent()) setLoadError(true);
-      })
-      .finally(() => {
-        if (request.isCurrent()) setLoading(false);
-      });
-  }, [address, begin, cancel]);
-
-  useEffect(() => {
-    // refresh() flips loading/error state synchronously before it awaits,
-    // which set-state-in-effect flags. That is the intended behaviour for
-    // a fetch-on-mount that also re-runs whenever `address` changes: the
-    // spinner has to come back while the new address is loading. Deriving
-    // loading from the data instead would be the way to drop this.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    refresh();
-  }, [refresh]);
-
-  useEffect(() => {
-    if (!address) return;
-
-    // A quiet background refresh — unlike refresh() above, it never flips
-    // `loading` on (the list would otherwise flash "Loading your streams…"
-    // every 30s) and never re-runs the first-load filter auto-selection.
-    // It shares refresh()'s request guard: starting a poll supersedes an
-    // in-flight refresh and vice versa, and a superseded or post-cleanup
-    // response is dropped. Because it can supersede a refresh, a poll that
-    // settles also clears `loading`.
-    let interval: ReturnType<typeof setInterval> | null = null;
-
-    function poll() {
-      const request = begin();
-      getStreams({ donor: address as string }, request.signal)
-        .then((data) => {
-          if (!request.isCurrent()) return;
-          setStreams(data);
-          setLoadError(false);
-          setLoading(false);
-        })
-        .catch((err: unknown) => {
-          if (!request.isCurrent()) return;
-          if (!(err instanceof DOMException && err.name === 'AbortError')) {
-            setLoadError(true);
-          }
-          setLoading(false);
-        });
-    }
-
-    function startPolling() {
-      if (interval !== null) return;
-      interval = setInterval(poll, POLL_INTERVAL_MS);
-    }
-
-    function stopPolling() {
-      if (interval === null) return;
-      clearInterval(interval);
-      interval = null;
-    }
-
-    // Pausing while the tab is hidden means actually stopping the
-    // interval (not just skipping a tick on a timer that keeps running),
-    // and catching up with one immediate poll on becoming visible again.
-    function handleVisibilityChange() {
-      if (document.visibilityState === 'visible') {
-        poll();
-        startPolling();
-      } else {
-        stopPolling();
-      }
-    }
-
-    if (document.visibilityState === 'visible') {
-      startPolling();
-    }
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      stopPolling();
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      cancel();
-    };
-  }, [address, begin, cancel]);
+  const { streams, loading, loadError, refresh } = useDonorStreams(address, (data) =>
+    setFilter(initialStreamFilter(data)),
+  );
 
   const totalCommitted = formatTokenTotals(
     streams.map((s) => ({
@@ -264,50 +144,14 @@ export default function DashboardPage() {
     return t('daysRemaining', { count: Math.floor(seconds / 86400) });
   };
   const trimmedSearchQuery = searchQuery.trim();
-  const filteredStreams = streams.filter((s) => {
-    if (filter === 'ACTIVE' && s.status !== 'ACTIVE') return false;
-    if (filter === 'CANCELLED' && s.status !== 'CANCELLED') return false;
-    // Emptying the search box naturally clears the filter — an empty
-    // trimmedSearchQuery is falsy, so this check never excludes anything.
-    if (trimmedSearchQuery && !s.onChainId.includes(trimmedSearchQuery)) return false;
-    return true;
-  });
-
-  const sortedStreams = [...filteredStreams].sort((a, b) => {
-    if (sortOrder === 'newest') {
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    }
-    if (sortOrder === 'oldest') {
-      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-    }
-    if (sortOrder === 'largest-committed') {
-      const commA = BigInt(a.balance) + BigInt(a.withdrawn);
-      const commB = BigInt(b.balance) + BigInt(b.withdrawn);
-      if (commB > commA) return 1;
-      if (commB < commA) return -1;
-      return 0;
-    }
-    if (sortOrder === 'ending-soonest') {
-      const getRemaining = (s: Stream) => {
-        if (s.status !== 'ACTIVE' || BigInt(s.rate) <= 0n) return 999999999999999n;
-        const b = BigInt(s.balance);
-        if (b <= 0n) return 0n;
-        return b / BigInt(s.rate);
-      };
-      const remA = getRemaining(a);
-      const remB = getRemaining(b);
-      if (remA > remB) return 1;
-      if (remA < remB) return -1;
-      return 0;
-    }
-    return 0;
-  });
+  const filteredStreams = filterStreams(streams, filter, trimmedSearchQuery);
+  const sortedStreams = sortStreams(filteredStreams, sortOrder);
 
   const visibleStreams = sortedStreams.slice(0, visibleCount);
   const hasMore = visibleCount < sortedStreams.length;
 
   // A new filter, search, or sort order starts back at the first page
-  function handleFilterChange(next: 'ALL' | 'ACTIVE' | 'CANCELLED'): void {
+  function handleFilterChange(next: StreamFilter): void {
     setFilter(next);
     setVisibleCount(PAGE_SIZE);
   }

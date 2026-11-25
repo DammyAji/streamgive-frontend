@@ -21,6 +21,14 @@ The app expects a running `streamgive-backend` instance at
 the Soroban RPC URL are pre-filled with testnet values so you can start
 without deploying contracts yourself.
 
+### Dev container
+
+If you use Docker, open the repo in VS Code and choose "Reopen in Container"
+(or run `devcontainer up`). The `.devcontainer` setup provides Node 24, the
+testnet `NEXT_PUBLIC_*` values from `.env.example`, forwards port 3001 and runs
+`npm install`. Then `npm run dev` starts the app. You still need a
+`streamgive-backend` instance reachable at `NEXT_PUBLIC_API_URL`.
+
 ## Testing
 
 ```bash
@@ -251,6 +259,15 @@ Run all three locally and fix any errors before opening a PR. CI runs lint
 and typecheck, plus `npm test`, `npm run build`, and the navigation-only
 Playwright spec `e2e/donor-flow.spec.ts`. The Prettier check (`npm run format`)
 is a local contributor check; it does not currently run in CI.
+
+### Pre-commit hook
+
+`npm install` sets up [husky](https://typicode.github.io/husky/) through the
+`prepare` script. On each commit, `lint-staged` runs ESLint and Prettier on the
+staged files only (see the `lint-staged` block in `package.json`).
+
+To skip it for one commit, use `git commit --no-verify` (or `HUSKY=0 git commit`).
+CI still runs lint and typecheck, so a skipped hook only moves the failure later.
 
 ## Accessibility checklist
 
