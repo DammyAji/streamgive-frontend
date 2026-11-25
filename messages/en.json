@@ -4,6 +4,12 @@
     "heroSubtext": "StreamGive lets you support verified NGOs on Stellar with continuous, cancel-anytime donations — transparent, on-chain, and instant.",
     "exploreNgos": "Explore NGOs"
   },
+  "OfflineBanner": {
+    "offline": "You're offline. Check your connection — donations and wallet actions will resume when you're back online."
+  },
+  "BackendStatusNotice": {
+    "unavailable": "The service is temporarily unavailable. This isn't a problem with your connection — please try again shortly."
+  },
   "HowItWorks": {
     "heading": "How it works",
     "steps": [
@@ -101,6 +107,7 @@
     "oldest": "Oldest",
     "largestCommitted": "Largest committed",
     "endingSoonest": "Ending soonest",
+    "endingSoon": "Ending soon",
     "searchLabel": "Search by on-chain stream ID",
     "searchPlaceholder": "Search by stream ID…",
     "scheduled": "Scheduled",
@@ -261,6 +268,10 @@
     "loadError": "Couldn't load this NGO's profile. Please check your connection and try again.",
     "retry": "Retry",
     "verified": "Verified",
+    "verifiedSince": "Verified since {date}",
+    "verificationExpires": "Verification expires {date}",
+    "verificationExpiringSoon": "Verification expires soon ({date})",
+    "verificationExpired": "Verification expired {date}",
     "totalCommitted": "Total committed",
     "totalWithdrawn": "Total withdrawn",
     "activeStreams": "{count, plural, one {Active stream} other {Active streams}}",

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
+import { headers } from 'next/headers';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 
@@ -65,6 +66,7 @@ export default async function RootLayout({
   // withNextIntl), which resolves the locale from the NEXT_LOCALE cookie.
   const locale = await getLocale();
   const messages = await getMessages();
+  const nonce = (await headers()).get('x-nonce') ?? undefined;
 
   return (
     // suppressHydrationWarning: THEME_INIT_SCRIPT adds a `dark`/`light`
@@ -76,7 +78,7 @@ export default async function RootLayout({
       <head>
         {/* Must run synchronously, before paint, to avoid a flash of the
             wrong theme — see THEME_INIT_SCRIPT's own comment. */}
-        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} bg-white text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-100`}

@@ -10,6 +10,13 @@ import { formatAmount, formatDate, tokenSymbol, truncateAddress } from '@/lib/fo
 import { explorerUrl } from '@/lib/stellar';
 
 const RECENT_STREAMS_LIMIT = 10;
+const EXPIRING_SOON_MS = 30 * 24 * 60 * 60 * 1000;
+
+function parseValidDate(iso: string | null | undefined): Date | null {
+  if (!iso) return null;
+  const parsed = new Date(iso);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
 
 /** Only http(s) URLs are rendered as links, so a stored `javascript:` or
  * other scheme can never become a clickable href. */
@@ -106,6 +113,20 @@ export default async function NgoProfilePage({ params }: Props) {
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
   );
 
+  const verifiedAtDate = parseValidDate(ngo.verifiedAt);
+  const expiresAtDate = parseValidDate(ngo.verificationExpiresAt);
+  // eslint-disable-next-line react-hooks/purity -- Server Component renders once per request
+  const nowMs = Date.now();
+  const isExpired = expiresAtDate ? expiresAtDate.getTime() <= nowMs : false;
+  const isExpiringSoon =
+    expiresAtDate && !isExpired ? expiresAtDate.getTime() - nowMs <= EXPIRING_SOON_MS : false;
+  const verifiedSinceFormatted = verifiedAtDate
+    ? formatDate(verifiedAtDate.toISOString(), locale, { dateStyle: 'medium' })
+    : null;
+  const expiresFormatted = expiresAtDate
+    ? formatDate(expiresAtDate.toISOString(), locale, { dateStyle: 'medium' })
+    : null;
+
   return (
     <main id="main" className="px-6 py-16 sm:px-12">
         <div className="flex flex-wrap items-center gap-3">
@@ -117,6 +138,35 @@ export default async function NgoProfilePage({ params }: Props) {
           )}
           <ShareButton title={ngo.name} ariaLabel={`Share ${ngo.name}`} />
         </div>
+
+        {(verifiedSinceFormatted || expiresFormatted) && (
+          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-600 dark:text-gray-400">
+            {verifiedSinceFormatted && (
+              <span>{t('verifiedSince', { date: verifiedSinceFormatted })}</span>
+            )}
+            {expiresFormatted && isExpired && (
+              <span
+                role="status"
+                className="font-medium text-red-700 dark:text-red-400"
+              >
+                {t('verificationExpired', { date: expiresFormatted })}
+              </span>
+            )}
+            {expiresFormatted && !isExpired && (
+              <span
+                className={
+                  isExpiringSoon
+                    ? 'font-medium text-amber-700 dark:text-amber-400'
+                    : undefined
+                }
+              >
+                {isExpiringSoon
+                  ? t('verificationExpiringSoon', { date: expiresFormatted })
+                  : t('verificationExpires', { date: expiresFormatted })}
+              </span>
+            )}
+          </div>
+        )}
 
         <a
           href={explorerUrl('account', ngo.ownerAddress)}
