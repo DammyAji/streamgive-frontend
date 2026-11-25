@@ -247,6 +247,41 @@ describe('DashboardPage', () => {
     });
   });
 
+  describe('ending soon badge', () => {
+    it('flags an active stream whose funds will run out within the threshold', async () => {
+      mockConnectedWallet();
+      vi.spyOn(ApiMod, 'getStreams').mockResolvedValue([
+        makeStream({
+          id: 'short',
+          rate: '1',
+          balance: '3600', // one hour at 1/sec
+          updatedAt: new Date(Date.now() - 60_000).toISOString(),
+        }),
+      ]);
+
+      renderWithIntl(<DashboardPage />);
+
+      expect(await screen.findByText('Ending soon')).toBeInTheDocument();
+    });
+
+    it('does not flag a stream with plenty of time left', async () => {
+      mockConnectedWallet();
+      vi.spyOn(ApiMod, 'getStreams').mockResolvedValue([
+        makeStream({
+          id: 'long',
+          rate: '1',
+          balance: '10000000',
+          updatedAt: new Date(Date.now() - 60_000).toISOString(),
+        }),
+      ]);
+
+      renderWithIntl(<DashboardPage />);
+
+      await waitFor(() => expect(screen.getByText('Test NGO')).toBeInTheDocument());
+      expect(screen.queryByText('Ending soon')).not.toBeInTheDocument();
+    });
+  });
+
   describe('load more', () => {
     // Cancelled so StreamControls (which needs a ToastProvider/contract
     // client this test file doesn't set up) never renders. 25 streams is
