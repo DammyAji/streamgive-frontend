@@ -95,6 +95,7 @@
     "totalStreams": "{count, plural, one {Total stream} other {Total streams}}",
     "totalCommitted": "Total committed",
     "activeStreams": "{count, plural, one {Active stream} other {Active streams}}",
+    "ngosSupported": "{count, plural, one {NGO supported} other {NGOs supported}}",
     "exportCsv": "Export CSV",
     "filterStreams": "Filter streams",
     "all": "All",
