@@ -39,7 +39,6 @@ vi.mock('@/lib/stellar', () => ({
   getUsdcAssetAddress: () => 'CUSDC',
 }));
 
-
 vi.mock('@/components/wallet/WalletProvider', () => ({
   useWallet: vi.fn(),
 }));
@@ -88,7 +87,11 @@ describe('DashboardPage', () => {
     mockConnectedWallet();
     vi.spyOn(ApiMod, 'getStreams').mockResolvedValue([
       makeStream({ id: 's1', memo: 'Spring campaign' }),
-      makeStream({ id: 's2', memo: '', ngo: { id: 'ngo-2', name: 'Other NGO', ownerAddress: 'GOTHER' } }),
+      makeStream({
+        id: 's2',
+        memo: '',
+        ngo: { id: 'ngo-2', name: 'Other NGO', ownerAddress: 'GOTHER' },
+      }),
     ]);
 
     renderWithIntl(<DashboardPage />);
@@ -193,12 +196,20 @@ describe('DashboardPage', () => {
     // The newer request resolves first, the older one arrives last.
     await act(async () => {
       resolvers.GNEW([
-        makeStream({ id: 'new', status: 'CANCELLED', ngo: { id: 'n2', name: 'New NGO', ownerAddress: 'GN' } }),
+        makeStream({
+          id: 'new',
+          status: 'CANCELLED',
+          ngo: { id: 'n2', name: 'New NGO', ownerAddress: 'GN' },
+        }),
       ]);
     });
     await act(async () => {
       resolvers.GOLD([
-        makeStream({ id: 'old', status: 'CANCELLED', ngo: { id: 'n1', name: 'Old NGO', ownerAddress: 'GO' } }),
+        makeStream({
+          id: 'old',
+          status: 'CANCELLED',
+          ngo: { id: 'n1', name: 'Old NGO', ownerAddress: 'GO' },
+        }),
       ]);
     });
 
@@ -295,7 +306,6 @@ describe('DashboardPage', () => {
       vi.spyOn(ApiMod, 'getStreams').mockResolvedValue(manyStreams);
       renderWithIntl(<DashboardPage />);
     }
-
 
     const rows = () => screen.getAllByRole('button', { name: 'View details' });
 
@@ -403,7 +413,10 @@ describe('DashboardPage', () => {
       expect(screen.getByText('Cancelled NGO')).toBeInTheDocument();
 
       await user.click(screen.getByRole('tab', { name: 'Cancelled' }));
-      expect(screen.getByRole('tab', { name: 'Cancelled' })).toHaveAttribute('aria-selected', 'true');
+      expect(screen.getByRole('tab', { name: 'Cancelled' })).toHaveAttribute(
+        'aria-selected',
+        'true',
+      );
       expect(screen.queryByText('Active NGO')).not.toBeInTheDocument();
       expect(screen.getByText('Cancelled NGO')).toBeInTheDocument();
 
@@ -804,7 +817,10 @@ describe('DashboardPage', () => {
       const retry = screen.getByRole('button', { name: 'Retry' });
 
       getStreamsMock.mockResolvedValueOnce([
-        makeStream({ status: 'CANCELLED', ngo: { id: 'ngo-9', name: 'Recovered NGO', ownerAddress: 'G9' } }),
+        makeStream({
+          status: 'CANCELLED',
+          ngo: { id: 'ngo-9', name: 'Recovered NGO', ownerAddress: 'G9' },
+        }),
       ]);
       await user.click(retry);
 
@@ -817,7 +833,9 @@ describe('DashboardPage', () => {
 
   describe('live balance', () => {
     const liveBalanceAmount = () =>
-      screen.getByTitle('Estimated current balance based on stream rate').textContent?.split(' ')[0];
+      screen
+        .getByTitle('Estimated current balance based on stream rate')
+        .textContent?.split(' ')[0];
 
     afterEach(() => {
       vi.useRealTimers();
@@ -947,10 +965,7 @@ describe('DashboardPage', () => {
 
     it('automatically opens the Ended section when selecting the Cancelled tab', async () => {
       mockConnectedWallet();
-      vi.spyOn(ApiMod, 'getStreams').mockResolvedValue([
-        ongoingStream,
-        cancelledStream,
-      ]);
+      vi.spyOn(ApiMod, 'getStreams').mockResolvedValue([ongoingStream, cancelledStream]);
 
       const user = userEvent.setup();
       renderWithIntl(<DashboardPage />);
@@ -967,5 +982,55 @@ describe('DashboardPage', () => {
       expect(screen.queryByText('Ongoing NGO')).not.toBeInTheDocument();
     });
   });
-});
 
+  describe('NGOs supported count (#465)', () => {
+    it('shows the correct count of distinct NGOs across all streams', async () => {
+      mockConnectedWallet();
+      vi.spyOn(ApiMod, 'getStreams').mockResolvedValue([
+        makeStream({
+          id: 's1',
+          status: 'ACTIVE',
+          ngo: { id: 'ngo-1', name: 'NGO One', ownerAddress: 'G1' },
+        }),
+        makeStream({
+          id: 's2',
+          status: 'CANCELLED',
+          ngo: { id: 'ngo-2', name: 'NGO Two', ownerAddress: 'G2' },
+        }),
+        makeStream({
+          id: 's3',
+          status: 'ACTIVE',
+          ngo: { id: 'ngo-1', name: 'NGO One', ownerAddress: 'G1' },
+        }),
+      ]);
+
+      renderWithIntl(<DashboardPage />);
+
+      await waitFor(() => expect(screen.getByText('NGOs supported')).toBeInTheDocument());
+      const cell = screen.getByText('NGOs supported').closest('div')!;
+      expect(cell).toHaveTextContent('2');
+    });
+
+    it('counts a single NGO when every stream goes to the same NGO', async () => {
+      mockConnectedWallet();
+      vi.spyOn(ApiMod, 'getStreams').mockResolvedValue([
+        makeStream({
+          id: 's1',
+          status: 'ACTIVE',
+          ngo: { id: 'ngo-1', name: 'Solo NGO', ownerAddress: 'G1' },
+        }),
+        makeStream({
+          id: 's2',
+          status: 'CANCELLED',
+          ngo: { id: 'ngo-1', name: 'Solo NGO', ownerAddress: 'G1' },
+        }),
+      ]);
+
+      renderWithIntl(<DashboardPage />);
+
+      await waitFor(() => expect(screen.getByText('NGO supported')).toBeInTheDocument());
+      const cell = screen.getByText('NGO supported').closest('div')!;
+      expect(cell).toHaveTextContent('1');
+    });
+  });
+});

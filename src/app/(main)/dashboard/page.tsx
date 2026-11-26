@@ -86,7 +86,11 @@ function LiveBalance({ stream }: { stream: Stream }) {
         i
       </button>
       {helpOpen && (
-        <span id={helpId} role="note" className="block w-full text-xs text-gray-600 dark:text-gray-400">
+        <span
+          id={helpId}
+          role="note"
+          className="block w-full text-xs text-gray-600 dark:text-gray-400"
+        >
           {t('estimatedBalanceHelp')}
         </span>
       )}
@@ -133,6 +137,7 @@ export default function DashboardPage() {
     })),
   );
   const activeCount = streams.filter((s) => s.status === 'ACTIVE').length;
+  const ngosSupported = new Set(streams.map((s) => s.ngo.id)).size;
   const remainingTime = (stream: Stream) => {
     const balance = BigInt(stream.balance);
     if (balance <= 0n) return t('fullyDrained');
@@ -151,8 +156,7 @@ export default function DashboardPage() {
   const visibleStreams = sortedStreams.slice(0, visibleCount);
   const hasMore = visibleCount < sortedStreams.length;
 
-  const isEndedStream = (s: Stream) =>
-    s.status === 'CANCELLED' || BigInt(s.balance) <= 0n;
+  const isEndedStream = (s: Stream) => s.status === 'CANCELLED' || BigInt(s.balance) <= 0n;
 
   const endedStreamsCount = sortedStreams.filter(isEndedStream).length;
   const visibleActiveStreams = visibleStreams.filter((s) => !isEndedStream(s));
@@ -182,9 +186,7 @@ export default function DashboardPage() {
       <main id="main" className="px-6 py-16 sm:px-12">
         <h1 className="text-2xl font-bold">{t('heading')}</h1>
 
-        {!address && (
-          <ConnectWalletPrompt className="mt-8" message={t('connectPrompt')} />
-        )}
+        {!address && <ConnectWalletPrompt className="mt-8" message={t('connectPrompt')} />}
 
         {address && loading && (
           <p role="status" className="mt-8 text-gray-500 dark:text-gray-400">
@@ -194,9 +196,7 @@ export default function DashboardPage() {
 
         {address && !loading && loadError && streams.length === 0 && (
           <div className="mt-8">
-            <p className="text-red-600 dark:text-red-400">
-              {t('loadError')}
-            </p>
+            <p className="text-red-600 dark:text-red-400">{t('loadError')}</p>
             <button
               type="button"
               onClick={refresh}
@@ -228,20 +228,30 @@ export default function DashboardPage() {
             )}
 
             <div className="flex flex-wrap items-start justify-between gap-4">
-              <dl className="grid grid-cols-3 gap-6 sm:w-fit sm:grid-cols-3 min-w-0">
+              <dl className="grid grid-cols-2 gap-6 sm:w-fit sm:grid-cols-4 min-w-0">
                 <div className="min-w-0">
-                  <dt className="text-sm text-gray-500 dark:text-gray-400">{t('totalStreams', { count: streams.length })}</dt>
+                  <dt className="text-sm text-gray-500 dark:text-gray-400">
+                    {t('totalStreams', { count: streams.length })}
+                  </dt>
                   <dd className="text-lg font-semibold">{streams.length}</dd>
                 </div>
                 <div className="min-w-0">
-                  <dt className="text-sm text-gray-500 dark:text-gray-400">{t('totalCommitted')}</dt>
-                  <dd className="break-words text-lg font-semibold">
-                    {totalCommitted}
-                  </dd>
+                  <dt className="text-sm text-gray-500 dark:text-gray-400">
+                    {t('totalCommitted')}
+                  </dt>
+                  <dd className="break-words text-lg font-semibold">{totalCommitted}</dd>
                 </div>
                 <div className="min-w-0">
-                  <dt className="text-sm text-gray-500 dark:text-gray-400">{t('activeStreams', { count: activeCount })}</dt>
+                  <dt className="text-sm text-gray-500 dark:text-gray-400">
+                    {t('activeStreams', { count: activeCount })}
+                  </dt>
                   <dd className="text-lg font-semibold">{activeCount}</dd>
+                </div>
+                <div className="min-w-0">
+                  <dt className="text-sm text-gray-500 dark:text-gray-400">
+                    {t('ngosSupported', { count: ngosSupported })}
+                  </dt>
+                  <dd className="text-lg font-semibold">{ngosSupported}</dd>
                 </div>
               </dl>
 
@@ -252,7 +262,6 @@ export default function DashboardPage() {
               >
                 {t('exportCsv')}
               </button>
-
             </div>
 
             <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-b border-gray-200 dark:border-gray-800">
@@ -287,7 +296,10 @@ export default function DashboardPage() {
               </div>
 
               <div className="flex items-center gap-2 pb-2">
-                <label htmlFor="sort-order" className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                <label
+                  htmlFor="sort-order"
+                  className="text-sm font-medium text-gray-500 dark:text-gray-400"
+                >
                   {t('sortLabel')}
                 </label>
                 <select
@@ -348,9 +360,7 @@ export default function DashboardPage() {
                 {visibleActiveStreams.length === 0 &&
                   visibleEndedStreams.length > 0 &&
                   filter === 'ACTIVE' && (
-                    <p className="text-gray-600 dark:text-gray-400">
-                      {t('noActiveStreams')}
-                    </p>
+                    <p className="text-gray-600 dark:text-gray-400">{t('noActiveStreams')}</p>
                   )}
 
                 {visibleEndedStreams.length > 0 && (
@@ -422,10 +432,7 @@ function StreamCard({
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <Link
-            href={`/ngos/${stream.ngo.id}`}
-            className="font-semibold hover:underline"
-          >
+          <Link href={`/ngos/${stream.ngo.id}`} className="font-semibold hover:underline">
             {stream.ngo.name}
           </Link>
           {isEndingSoon(stream) && <EndingSoonBadge />}
